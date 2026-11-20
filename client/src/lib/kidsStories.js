@@ -117,6 +117,94 @@ export const KID_STORIES = [
       { q: "Kapan cerita ini terjadi?", options: ["Malam hari", "Pagi hari", "Siang hari"], answer: 0 },
       { q: "Bintang berkelip seperti apa?", options: ["Lampu kecil", "Bola besar", "Matahari"], answer: 0 }
     ]
+  },
+  {
+    id: "sekolah",
+    title: "Hari Pertama Sekolah",
+    titleEn: "The First Day of School",
+    titleAr: "أول يوم في المدرسة",
+    emoji: "🎒",
+    cover: ["🎒", "🏫", "📚"],
+    color: "#ff7aa2",
+    level: "Mudah",
+    sentences: [
+      sentence("🎒", "Hari ini hari pertama sekolah.", "Today is the first day of school.", "الْيَوْمَ أَوَّلُ يَوْمٍ فِي الْمَدْرَسَة."),
+      sentence("🏫", "Aku pergi ke sekolah bersama ayah.", "I go to school with my father.", "ذَهَبْتُ إِلَى الْمَدْرَسَةِ مَعَ أَبِي."),
+      sentence("👩‍🏫", "Guru menyambut kami dengan senyum.", "The teacher welcomes us with a smile.", "الْمُعَلِّمَةُ تَسْتَقْبِلُنَا بِابْتِسَامَة."),
+      sentence("📚", "Aku mendapat buku baru.", "I get a new book.", "حَصَلْتُ عَلَى كِتَابٍ جَدِيد."),
+      sentence("🧑‍🤝‍🧑", "Aku duduk di samping teman baru.", "I sit next to a new friend.", "جَلَسْتُ بِجَانِبِ صَدِيقٍ جَدِيد."),
+      sentence("🔔", "Bel berbunyi, kami pulang.", "The bell rings and we go home.", "رَنَّ الْجَرَسُ وَعُدْنَا إِلَى الْبَيْت.")
+    ],
+    questions: [
+      { q: "Apa yang diterima di sekolah?", options: ["Buku baru", "Sepatu baru", "Topi baru"], answer: 0 },
+      { q: "Aku duduk di samping siapa?", options: ["Teman baru", "Guru", "Ayah"], answer: 0 }
+    ]
+  },
+  {
+    id: "pantai",
+    title: "Pergi ke Pantai",
+    titleEn: "Going to the Beach",
+    titleAr: "الذهاب إلى الشاطئ",
+    emoji: "🏖️",
+    cover: ["🏖️", "🌊", "🐚"],
+    color: "#ffab3d",
+    level: "Mudah",
+    sentences: [
+      sentence("🏖️", "Pada hari libur, kami pergi ke pantai.", "On the holiday, we go to the beach.", "فِي يَوْمِ الْعُطْلَةِ ذَهَبْنَا إِلَى الشَّاطِئ."),
+      sentence("🌊", "Ombaknya biru dan indah.", "The waves are blue and beautiful.", "الْأَمْوَاجُ زَرْقَاءُ وَجَمِيلَة."),
+      sentence("🏰", "Aku membuat istana pasir.", "I build a sandcastle.", "بَنَيْتُ قَصْرًا مِنَ الرَّمْل."),
+      sentence("🐚", "Adik mengumpulkan kerang.", "My little sister collects shells.", "أُخْتِي الصَّغِيرَةُ تَجْمَعُ الْأَصْدَاف."),
+      sentence("🍉", "Kami makan semangka bersama.", "We eat watermelon together.", "أَكَلْنَا الْبَطِّيخَ مَعًا."),
+      sentence("🌅", "Kami pulang saat matahari terbenam.", "We go home at sunset.", "عُدْنَا عِنْدَ غُرُوبِ الشَّمْس.")
+    ],
+    questions: [
+      { q: "Apa yang dibuat di pantai?", options: ["Istana pasir", "Perahu", "Layang-layang"], answer: 0 },
+      { q: "Apa yang dikumpulkan adik?", options: ["Kerang", "Batu", "Daun"], answer: 0 }
+    ]
+  },
+  {
+    id: "hujan",
+    title: "Hujan di Sore Hari",
+    titleEn: "Rain in the Afternoon",
+    titleAr: "المطر في العصر",
+    emoji: "🌧️",
+    cover: ["🌧️", "☂️", "🌈"],
+    color: "#4f8cff",
+    level: "Sedang",
+    sentences: [
+      sentence("☁️", "Sore itu langit gelap.", "That afternoon the sky is dark.", "فِي ذَلِكَ الْعَصْرِ كَانَتِ السَّمَاءُ مُظْلِمَة."),
+      sentence("🌧️", "Lalu hujan turun.", "Then the rain falls.", "ثُمَّ نَزَلَ الْمَطَر."),
+      sentence("🧥", "Aku memakai jaket.", "I put on a jacket.", "لَبِسْتُ سُتْرَة."),
+      sentence("☂️", "Ibu membuka payung.", "Mother opens an umbrella.", "فَتَحَتْ أُمِّي الْمِظَلَّة."),
+      sentence("🐸", "Katak bernyanyi di kolam.", "Frogs sing in the pond.", "الضَّفَادِعُ تُغَنِّي فِي الْبِرْكَة."),
+      sentence("🌈", "Setelah hujan, ada pelangi.", "After the rain, there is a rainbow.", "بَعْدَ الْمَطَرِ ظَهَرَ قَوْسُ قُزَح.")
+    ],
+    questions: [
+      { q: "Apa yang dipakai saat hujan?", options: ["Jaket", "Topi", "Sandal"], answer: 0 },
+      { q: "Apa yang muncul setelah hujan?", options: ["Pelangi", "Bulan", "Bintang"], answer: 0 }
+    ]
+  },
+  {
+    id: "baju-baru",
+    title: "Baju Baru",
+    titleEn: "New Clothes",
+    titleAr: "ثوب جديد",
+    emoji: "👗",
+    cover: ["👗", "👞", "🎉"],
+    color: "#a06bff",
+    level: "Sedang",
+    sentences: [
+      sentence("🎉", "Besok ada hari raya.", "Tomorrow is the holiday.", "غَدًا الْعِيد."),
+      sentence("👗", "Ibu membelikan baju baru.", "Mother buys a new dress.", "اِشْتَرَتْ لِي أُمِّي ثَوْبًا جَدِيدًا."),
+      sentence("👞", "Aku juga punya sepatu baru.", "I also have new shoes.", "لَدَيَّ أَيْضًا حِذَاءٌ جَدِيد."),
+      sentence("🧼", "Aku mandi dan memakai wangi-wangian.", "I bathe and put on perfume.", "اِسْتَحْمَمْتُ وَتَعَطَّرْتُ."),
+      sentence("🕌", "Kami pergi salat bersama.", "We go to pray together.", "ذَهَبْنَا إِلَى الصَّلَاةِ مَعًا."),
+      sentence("🤝", "Aku bersalaman dengan tetangga.", "I shake hands with the neighbours.", "صَافَحْتُ الْجِيرَان.")
+    ],
+    questions: [
+      { q: "Apa yang dibeli Ibu?", options: ["Baju baru", "Buku baru", "Tas baru"], answer: 0 },
+      { q: "Dengan siapa aku bersalaman?", options: ["Tetangga", "Guru", "Dokter"], answer: 0 }
+    ]
   }
 ]
 

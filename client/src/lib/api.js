@@ -143,8 +143,17 @@ export function aiTranslate(text, sourceLang, options) {
   return sendJson("POST", "ai/translate", Object.assign({ text, sourceLang }, options || {}))
 }
 
-export function aiSuggestionDraft(fields) {
-  return sendJson("POST", "ai/word-suggestion-draft", fields || {})
+export function aiStatus(options) {
+  const params = new URLSearchParams()
+  const source = options || {}
+  if (source.ollamaUrl) params.set("ollamaUrl", source.ollamaUrl)
+  if (source.ollamaModel) params.set("ollamaModel", source.ollamaModel)
+  const query = params.toString()
+  return getJson(`ai/status${query ? `?${query}` : ""}`)
+}
+
+export function aiSuggestionDraft(fields, options) {
+  return sendJson("POST", "ai/word-suggestion-draft", Object.assign({}, fields || {}, options || {}))
 }
 
 export function adminLogin(username, password) {

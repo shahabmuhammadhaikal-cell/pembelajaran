@@ -34,8 +34,15 @@ services:
       # Tempel isi file service account JSON (satu baris) sebagai rahasia.
       - key: FIREBASE_SERVICE_ACCOUNT
         sync: false
-      # --- Opsional: bantuan AI via Ollama ---
-      - key: OLLAMA_BASE_URL
-        sync: false
-      - key: OLLAMA_MODEL
+      # --- Opsional: bantuan AI ---
+      # ollama (default) atau openai untuk endpoint OpenAI-compatible.
+      - key: AI_PROVIDER
+        value: ""
+      # Ollama publik/lokal, atau https://.../v1 untuk layanan hosted.
+      - key: AI_BASE_URL
+        value: ""
+      - key: AI_MODEL
         value: "qwen2.5:3b"
+      # Kunci layanan hosted (rahasia). Kosongkan untuk Ollama tanpa kunci.
+      - key: AI_API_KEY
+        sync: false

@@ -3,6 +3,7 @@ import Modal from "../components/Modal.jsx"
 import { useApp } from "../state/useApp.js"
 import * as api from "../lib/api.js"
 import { getAdminToken } from "../lib/storage.js"
+import { aiRequestOptions } from "../lib/aiConfig.js"
 import { IconSend, IconSparkles } from "../components/Icons.jsx"
 
 const EMPTY_FORM = { kind: "word", request: "", meaning: "", category: "", note: "" }
@@ -53,7 +54,10 @@ export default function SuggestionsModal() {
     }
     setDrafting(true)
     try {
-      const data = await api.aiSuggestionDraft({ ...form, currentCategory: state.settings.category })
+      const data = await api.aiSuggestionDraft(
+        { ...form, currentCategory: state.settings.category },
+        aiRequestOptions()
+      )
       if (data && data.result) {
         setForm(previous => ({ ...previous, ...data.result }))
         actions.pushToast("Draft dirapikan oleh AI", "success")

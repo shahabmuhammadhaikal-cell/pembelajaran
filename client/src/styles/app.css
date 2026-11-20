@@ -1554,6 +1554,27 @@ textarea.input {
     width: 100%;
     order: 3;
     margin-left: 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .header-tools .field {
+    grid-column: span 2;
+    min-width: 0;
+  }
+  .header-tools .field select {
+    min-width: 0;
+  }
+  .header-tools .search-field {
+    grid-column: span 4;
+  }
+  .header-tools .icon-btn {
+    width: 100%;
+  }
+  .header-tools .sync-pill {
+    grid-column: span 4;
+    justify-content: center;
+    width: 100%;
   }
   .search-field {
     flex: 1;
@@ -1562,7 +1583,7 @@ textarea.input {
     width: 100%;
   }
   .field select {
-    max-width: 118px;
+    max-width: 100%;
   }
   .main {
     padding: 16px 14px 34px;
@@ -2019,4 +2040,380 @@ textarea.input {
     padding: 0 9px;
     font-size: 11.5px;
   }
+}
+
+/* =========================================================
+   Lapisan poles: aurora, kaca, dan sorotan mikro
+   ========================================================= */
+
+.app {
+  position: relative;
+  isolation: isolate;
+}
+
+/* Aurora lembut yang bergerak pelan di latar. */
+.app::before {
+  content: "";
+  position: fixed;
+  inset: -28vh -12vw;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(38vw 38vw at 16% 20%, var(--aurora-1), transparent 62%),
+    radial-gradient(34vw 34vw at 84% 10%, var(--aurora-3), transparent 62%),
+    radial-gradient(32vw 32vw at 60% 84%, var(--aurora-2), transparent 62%);
+  animation: aurora-drift 26s ease-in-out infinite alternate;
+}
+
+@keyframes aurora-drift {
+  0% {
+    transform: translate3d(-2%, -1%, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(2%, 2%, 0) scale(1.06);
+  }
+  100% {
+    transform: translate3d(-1%, 3%, 0) scale(1.02);
+  }
+}
+
+/* Garis gradien tipis di bawah header. */
+.app-header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: var(--hairline);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.brand-mark {
+  box-shadow: 0 8px 22px rgba(109, 124, 255, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease);
+}
+
+.brand:hover .brand-mark {
+  transform: rotate(-7deg) scale(1.05);
+  box-shadow: 0 12px 28px rgba(109, 124, 255, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.icon-btn:hover {
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
+}
+
+.icon-btn.active {
+  box-shadow: 0 8px 20px rgba(109, 124, 255, 0.28);
+}
+
+/* Kilau yang menyapu tombol utama. */
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -60%;
+  width: 45%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  transform: skewX(-18deg) translateX(0);
+  transition: transform 0.65s var(--ease);
+  pointer-events: none;
+}
+
+.btn-primary:hover::after {
+  transform: skewX(-18deg) translateX(340%);
+}
+
+.tabs {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+[data-theme="light"] .tabs {
+  box-shadow: 0 12px 28px rgba(23, 32, 64, 0.1), inset 0 1px 0 #fff;
+}
+
+.tab.active {
+  box-shadow: 0 8px 22px rgba(109, 124, 255, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+/* Sorotan pada hero dasbor. */
+.dash-hero {
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.22);
+}
+
+[data-theme="light"] .dash-hero {
+  box-shadow: 0 18px 40px rgba(23, 32, 64, 0.1);
+}
+
+.dash-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(62% 74% at 88% 6%, rgba(53, 214, 164, 0.24), transparent 72%);
+  pointer-events: none;
+  animation: hero-glow 9s ease-in-out infinite alternate;
+}
+
+@keyframes hero-glow {
+  0% {
+    opacity: 0.75;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Hero mengisi lebar penuh saat sendirian di baris grid. */
+.dash-grid:has(> :only-child) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.hero-title {
+  background: linear-gradient(118deg, var(--text) 18%, var(--text) 46%, var(--primary) 88%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+[data-theme="light"] .hero-title {
+  background: linear-gradient(118deg, var(--text) 20%, #2c3aa8 82%, var(--violet) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.ring {
+  filter: drop-shadow(0 10px 22px rgba(109, 124, 255, 0.35));
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 34%, rgba(109, 124, 255, 0.2), transparent 68%);
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.14);
+}
+
+.ring .ring-bg {
+  stroke: rgba(148, 163, 184, 0.26);
+}
+
+[data-theme="light"] .ring .ring-bg {
+  stroke: rgba(20, 30, 60, 0.14);
+}
+
+.ring .ring-fg {
+  filter: drop-shadow(0 0 7px rgba(109, 124, 255, 0.6));
+}
+
+.ring-value {
+  background: linear-gradient(120deg, var(--text), var(--primary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.streak-pill {
+  box-shadow: 0 8px 20px rgba(251, 191, 36, 0.22);
+}
+
+.stat-tile {
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-tile::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: var(--gradient);
+  opacity: 0;
+  transition: opacity 0.25s var(--ease);
+}
+
+.stat-tile:hover::before {
+  opacity: 1;
+}
+
+.stat-tile:hover {
+  box-shadow: var(--shadow);
+}
+
+button.chip:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+}
+
+.chip.active {
+  box-shadow: 0 6px 18px rgba(109, 124, 255, 0.24);
+}
+
+.face {
+  transition: box-shadow 0.3s var(--ease), border-color 0.3s var(--ease);
+}
+
+.flashcard-scene:hover .face {
+  border-color: var(--border-strong);
+}
+
+.option.correct {
+  box-shadow: 0 10px 26px rgba(53, 214, 164, 0.24);
+}
+
+.option.wrong {
+  animation: shake-x 0.36s var(--ease);
+}
+
+@keyframes shake-x {
+  10%,
+  90% {
+    transform: translateX(-2px);
+  }
+  30%,
+  70% {
+    transform: translateX(3px);
+  }
+  50% {
+    transform: translateX(-4px);
+  }
+}
+
+.phrase-card::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 2px;
+  background: var(--gradient);
+  opacity: 0;
+  transition: opacity 0.25s var(--ease);
+}
+
+.phrase-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.phrase-card:hover::after {
+  opacity: 1;
+}
+
+.phrase-card:hover {
+  box-shadow: var(--shadow);
+}
+
+/* Modal: cahaya lembut di belakang kartu. */
+.modal-backdrop {
+  background:
+    radial-gradient(58% 52% at 50% 38%, rgba(109, 124, 255, 0.16), transparent 70%),
+    rgba(4, 7, 15, 0.7);
+}
+
+[data-theme="light"] .modal-backdrop {
+  background:
+    radial-gradient(58% 52% at 50% 38%, rgba(79, 92, 255, 0.12), transparent 70%),
+    rgba(16, 22, 40, 0.42);
+}
+
+.modal-card {
+  box-shadow: var(--shadow-lg), 0 0 0 1px rgba(109, 124, 255, 0.12);
+}
+
+/* Toast dengan pita warna. */
+.toast {
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+}
+
+.toast::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--primary);
+}
+
+.toast.success::before {
+  background: var(--accent);
+}
+
+.toast.error::before {
+  background: var(--danger);
+}
+
+.toast.warn::before {
+  background: var(--warn);
+}
+
+/* Panel akun. */
+.account-card {
+  background:
+    radial-gradient(460px 220px at 100% -25%, var(--primary-soft), transparent 72%),
+    radial-gradient(380px 200px at 0% 100%, rgba(53, 214, 164, 0.08), transparent 70%),
+    var(--surface);
+  border-color: var(--border-strong);
+}
+
+.account-card .modal-head {
+  background: linear-gradient(180deg, rgba(109, 124, 255, 0.14), transparent), var(--glass);
+  border-bottom-color: var(--border);
+}
+
+.account-avatar {
+  box-shadow: 0 10px 24px rgba(109, 124, 255, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.account-profile {
+  background: linear-gradient(135deg, var(--surface-2), var(--surface));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.account-tabs button.active {
+  background: var(--gradient);
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(109, 124, 255, 0.36);
+}
+
+.account-tabs button:hover:not(.active) {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+.account-form .btn-primary {
+  box-shadow: 0 12px 26px rgba(109, 124, 255, 0.4);
+}
+
+.account-error {
+  animation: shake-x 0.4s var(--ease);
+}
+
+.account-google {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.16);
+}
+
+.account-danger-panel {
+  box-shadow: 0 10px 24px rgba(248, 113, 113, 0.16);
+}
+
+.sync-pill.saved {
+  box-shadow: 0 6px 16px rgba(53, 214, 164, 0.18);
+}
+
+/* Footer dengan garis gradien di atas. */
+.app-footer {
+  position: relative;
+}
+
+.app-footer::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -1px;
+  height: 1px;
+  background: var(--hairline);
+  opacity: 0.75;
 }

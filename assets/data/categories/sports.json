@@ -1,0 +1,18 @@
+[
+  { "en": "Football", "ar": "كُرَة الْقَدَم", "tr": "Kurat al-qadam", "id": "Sepak bola" },
+  { "en": "Swimming", "ar": "سِبَاحَة", "tr": "Sibāḥa", "id": "Renang" },
+  { "en": "Running", "ar": "جَرْي", "tr": "Jary", "id": "Lari" },
+  { "en": "Basketball", "ar": "كُرَة السَّلَّة", "tr": "Kurat as-salla", "id": "Bola basket" },
+  { "en": "Tennis", "ar": "تِنِس", "tr": "Tinis", "id": "Tenis" },
+  { "en": "Cycling", "ar": "رُكُوب الدَّرَّاجَة", "tr": "Rukūb ad-darrāja", "id": "Bersepeda" },
+  { "en": "Volleyball", "ar": "كُرَة الطَّائِرَة", "tr": "Kurat aṭ-ṭāʾira", "id": "Bola voli" },
+  { "en": "Boxing", "ar": "مُلَاكَمَة", "tr": "Mulākama", "id": "Tinju" },
+  { "en": "Athlete", "ar": "رِيَاضِيّ", "tr": "Riyāḍī", "id": "Atlet" },
+  { "en": "Coach", "ar": "مُدَرِّب", "tr": "Mudarrib", "id": "Pelatih" },
+  { "en": "Team", "ar": "فَرِيق", "tr": "Farīq", "id": "Tim" },
+  { "en": "Match", "ar": "مُبَارَاة", "tr": "Mubārāh", "id": "Pertandingan" },
+  { "en": "Stadium", "ar": "مَلْعَب", "tr": "Malʿab", "id": "Stadion" },
+  { "en": "Medal", "ar": "مِيدَالِيَّة", "tr": "Mīdāliyya", "id": "Medali" },
+  { "en": "Champion", "ar": "بَطَل", "tr": "Baṭal", "id": "Juara" },
+  { "en": "Exercise", "ar": "تَمْرِين", "tr": "Tamrīn", "id": "Latihan" }
+]

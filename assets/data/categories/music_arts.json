@@ -1,0 +1,19 @@
+[
+  { "en": "Music", "ar": "مُوسِيقَى", "tr": "Mūsīqā", "id": "Musik" },
+  { "en": "Song", "ar": "أُغْنِيَّة", "tr": "Ughniyya", "id": "Lagu" },
+  { "en": "Guitar", "ar": "جِيتَار", "tr": "Jītār", "id": "Gitar" },
+  { "en": "Piano", "ar": "بِيَانُو", "tr": "Biyānū", "id": "Piano" },
+  { "en": "Drum", "ar": "طَبْل", "tr": "Ṭabl", "id": "Drum" },
+  { "en": "Violin", "ar": "كَمَان", "tr": "Kamān", "id": "Biola" },
+  { "en": "Painting", "ar": "رَسْم", "tr": "Rasm", "id": "Lukisan" },
+  { "en": "Artist", "ar": "فَنَّان", "tr": "Fannān", "id": "Seniman" },
+  { "en": "Museum", "ar": "مَتْحَف", "tr": "Matḥaf", "id": "Museum" },
+  { "en": "Theater", "ar": "مَسْرَح", "tr": "Masraḥ", "id": "Teater" },
+  { "en": "Dance", "ar": "رَقْص", "tr": "Raqṣ", "id": "Tari" },
+  { "en": "Poetry", "ar": "شِعْر", "tr": "Shiʿr", "id": "Puisi" },
+  { "en": "Novel", "ar": "رِوَايَة", "tr": "Riwāya", "id": "Novel" },
+  { "en": "Camera", "ar": "كَامِيرَا", "tr": "Kāmīrā", "id": "Kamera" },
+  { "en": "Photograph", "ar": "صُورَة", "tr": "Ṣūra", "id": "Foto" },
+  { "en": "Sculpture", "ar": "نَحْت", "tr": "Naḥt", "id": "Patung" },
+  { "en": "Concert", "ar": "حَفْل مُوسِيقِيّ", "tr": "Ḥafl mūsīqī", "id": "Konser" }
+]

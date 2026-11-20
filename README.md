@@ -24,7 +24,7 @@ Aplikasi belajar kosakata **Inggris · العربية · Indonesia** — dibangu
 │   ├── db/                    # pabrik store: firestore.js | local.js (JSON fallback)
 │   ├── lib/lexicon.js         # lexicon kompak server-side (cache)
 │   └── scripts/seed-firestore.js
-├── assets/data/               # dataset statis (82 kategori, ±12.000 entri)
+├── assets/data/               # dataset statis (87 kategori, ±12.000 entri)
 ├── render.yaml                # blueprint deploy Render
 └── .github/workflows/deploy-pages.yml
 ```
@@ -35,7 +35,7 @@ Aplikasi belajar kosakata **Inggris · العربية · Indonesia** — dibangu
 - **Kartu** — flashcard 3D balik, audio EN/AR/ID (Web Speech + fallback TTS server), favorit, filter (Semua/Favorit/Sulit/Baru/Kuat), badge SRS.
 - **Kuis** — 10 soal per sesi, timer lingkaran (bisa dimatikan), pemilihan soal berbobot SRS, ringkasan sesi, mode "ulangi kesalahan".
 - **Frasa** — grid kartu EN/AR/ID dengan audio per baris dan paginasi.
-- **Terjemah** — kamus lokal ±5.000 entri lewat API `/api/lexicon` (kompak, bukan 3MB), deteksi bahasa otomatis, tambah kata tak dikenal ke kamus lokal, riwayat, bantuan AI (Ollama via backend).
+- **Terjemah** — kamus lokal ±5.000 entri lewat API `/api/lexicon` (kompak, bukan 3MB), deteksi bahasa otomatis, tambah kata tak dikenal ke kamus lokal, riwayat, bantuan AI lewat Ollama atau endpoint OpenAI-compatible (diatur di **Pengaturan → Bantuan AI**).
 - **Saran kata** — form + status, bisa dirapikan AI, admin bisa menandai selesai.
 - **Sinkronisasi progres** — SRS/favorit/riwayat tersimpan di localStorage **dan** tersinkron ke backend (`progress/{deviceId}` di Firestore).
 - Tampilan baru: tema gelap/terang/sistem, glassmorphism header, animasi halus, responsif penuh, pintasan papan ketik (`1–5`, `/`, spasi, ←→, S).
@@ -100,9 +100,63 @@ Karena Hosting tidak mem-proxy `/api` ke server lain, build hosted wajib memakai
    - `API_BASE_URL` — URL publik service (mis. `https://pembelajaran-api.onrender.com/`)
    - `CORS_ORIGINS` — URL Pages kamu (mis. `https://username.github.io`), koma bila lebih dari satu
    - `ADMIN_USERNAME` / `ADMIN_PASSWORD` — untuk login admin (upload, status saran)
-   - `OLLAMA_BASE_URL` / `OLLAMA_MODEL` — opsional, untuk fitur AI
+   - `AI_BASE_URL` / `AI_MODEL` / `AI_API_KEY` — opsional, untuk fitur AI (lihat bagian berikut)
 
 Health check: `GET /api/health` — balik `{"ok":true,"storage":"firestore|json"}`.
+
+### 2a. Bantuan AI (Ollama atau OpenAI-compatible)
+
+Fitur "Bantu AI" di tab Terjemah dan "Rapikan dengan AI" di Saran Kata memakai
+satu lapisan AI di backend. Ada dua cara menyambungkannya:
+
+**Ollama (lokal/privat, default).** Jalankan server Ollama, lalu isi di `server/.env`:
+
+```bash
+ollama pull qwen2.5:3b
+ollama serve                     # http://127.0.0.1:11434
+AI_BASE_URL=http://127.0.0.1:11434
+AI_MODEL=qwen2.5:3b
+```
+
+Di aplikasi, buka **Pengaturan → Bantuan AI**, isi `http://127.0.0.1:11434`,
+klik **Uji koneksi** (daftar model terpasang muncul dan bisa dipilih), lalu
+**Simpan & uji**. Alamat ini tersimpan per perangkat.
+
+**Ollama Cloud (gratis, tanpa instalasi).** Ollama menyediakan akses cloud langsung
+di `https://ollama.com/v1` (protokol OpenAI-compatible) memakai API key dari
+[ollama.com/settings/keys](https://ollama.com/settings/keys). Paket Free berisi
+kredit awal dan akses model starter; model cloud belum mendukung structured
+output, dan klien ini otomatis mengirim permintaan JSON tanpa `response_format`
+untuk `ollama.com` (plus fallback bila endpoint menolaknya). Isi di server:
+
+```bash
+AI_PROVIDER=openai
+AI_BASE_URL=https://ollama.com/v1
+AI_MODEL=model-yang-tersedia-di-akun-anda
+AI_API_KEY=api-key-dari-ollama        # rahasia, hanya di server
+```
+
+Model yang bisa dipakai bergantung pada paket akun, jadi jangan menebak nama
+model: di **Pengaturan → Bantuan AI** klik **Ollama Cloud**, biarkan kolom model
+kosong, lalu **Uji koneksi** — model pertama yang terdeteksi diisi otomatis dan
+bisa diganti dari daftar. URL tersimpan di perangkat, kunci tetap di server.
+
+**Endpoint OpenAI-compatible lain (untuk server hosted seperti Render).** Render tidak
+bisa menjangkau Ollama di komputer Anda, jadi pakai endpoint yang kompatibel
+OpenAI — Ollama Cloud, OpenLLM, OpenAI, Groq, LM Studio, llama.cpp. Isi URL
+berakhiran `/v1` dan simpan kuncinya hanya di server:
+
+```bash
+AI_PROVIDER=openai
+AI_BASE_URL=https://.../v1
+AI_MODEL=nama-model
+AI_API_KEY=isi-dari-dashboard-penyedia   # rahasia, jangan di-commit
+```
+
+Kunci API tidak pernah dikirim ke browser; halaman Pengaturan hanya menyimpan
+URL dan nama model. Isi `AI_API_KEY` lewat Render → Environment (atau secret
+manager host) setelah deploy pertama. `GET /ai/status` menampilkan status,
+provider yang terdeteksi, dan daftar model tanpa membocorkan kunci.
 
 **Frontend ikut di server Render (satu URL).** [render.yaml](render.yaml) memakai build command
 `npm install && cd ../client && npm ci && npm run build`, lalu Express menyajikan `client/dist`,
@@ -177,7 +231,8 @@ Skema Firestore:
 | `GET /tts?lang&text` | audio TTS (rate-limited) |
 | `GET·POST /word-suggestions` | baca/kirim saran kata |
 | `POST /word-suggestions-status` | ubah status (admin) |
-| `POST /ai/translate`, `/ai/word-suggestion-draft` | bantuan Ollama |
+| `GET /ai/status` | status koneksi AI + daftar model |
+| `POST /ai/translate`, `/ai/word-suggestion-draft` | bantuan AI (Ollama / OpenAI-compatible) |
 | `POST /admin/login·logout·session` | sesi admin |
 | `POST /upload`, `/import-animals`, `/import-vegetables` | admin |
 

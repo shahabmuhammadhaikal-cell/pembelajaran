@@ -327,6 +327,26 @@
                        {
                            "id":  "amphibians",
                            "name":  "Amfibi"
+                       },
+                       {
+                           "id":  "technology",
+                           "name":  "Teknologi & Internet"
+                       },
+                       {
+                           "id":  "nature_environment",
+                           "name":  "Alam & Lingkungan"
+                       },
+                       {
+                           "id":  "sports",
+                           "name":  "Olahraga"
+                       },
+                       {
+                           "id":  "music_arts",
+                           "name":  "Musik & Seni"
+                       },
+                       {
+                           "id":  "phrasal_verbs",
+                           "name":  "Phrasal Verbs"
                        }
                    ],
     "entries":  {
@@ -495,6 +515,11 @@
                         "lizards":  "assets/data/categories/lizards.json",
                         "snakes":  "assets/data/categories/snakes.json",
                         "turtles_tortoises":  "assets/data/categories/turtles_tortoises.json",
-                        "amphibians":  "assets/data/categories/amphibians.json"
+                        "amphibians":  "assets/data/categories/amphibians.json",
+                        "technology":  "assets/data/categories/technology.json",
+                        "nature_environment":  "assets/data/categories/nature_environment.json",
+                        "sports":  "assets/data/categories/sports.json",
+                        "music_arts":  "assets/data/categories/music_arts.json",
+                        "phrasal_verbs":  "assets/data/categories/phrasal_verbs.json"
                     }
 }

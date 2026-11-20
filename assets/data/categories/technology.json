@@ -1,0 +1,20 @@
+[
+  { "en": "Computer", "ar": "حَاسُوب", "tr": "Ḥāsūb", "id": "Komputer" },
+  { "en": "Internet", "ar": "الْإِنْتَرْنِت", "tr": "Al-intarnit", "id": "Internet" },
+  { "en": "Password", "ar": "كَلِمَة الْمُرُور", "tr": "Kalimat al-murūr", "id": "Kata sandi" },
+  { "en": "Email", "ar": "بَرِيد إِلِكْتُرُونِيّ", "tr": "Barīd ilikturūnī", "id": "Surel" },
+  { "en": "Smartphone", "ar": "هَاتِف ذَكِيّ", "tr": "Hātif dhakī", "id": "Ponsel pintar" },
+  { "en": "Application", "ar": "تَطْبِيق", "tr": "Taṭbīq", "id": "Aplikasi" },
+  { "en": "Screen", "ar": "شَاشَة", "tr": "Shāsha", "id": "Layar" },
+  { "en": "Keyboard", "ar": "لَوْحَة الْمَفَاتِيح", "tr": "Lawḥat al-mafātīḥ", "id": "Papan tombol" },
+  { "en": "Website", "ar": "مَوْقِع إِلِكْتُرُونِيّ", "tr": "Mawqiʿ ilikturūnī", "id": "Situs web" },
+  { "en": "Download", "ar": "تَحْمِيل", "tr": "Taḥmīl", "id": "Unduh" },
+  { "en": "Upload", "ar": "رَفْع", "tr": "Rafʿ", "id": "Unggah" },
+  { "en": "Search", "ar": "بَحْث", "tr": "Baḥth", "id": "Pencarian" },
+  { "en": "Message", "ar": "رِسَالَة", "tr": "Risāla", "id": "Pesan" },
+  { "en": "Video", "ar": "مَقْطَع مُصَوَّر", "tr": "Maqṭaʿ muṣawwar", "id": "Video" },
+  { "en": "Battery", "ar": "بَطَّارِيَّة", "tr": "Baṭṭāriyya", "id": "Baterai" },
+  { "en": "Charger", "ar": "شَاحِن", "tr": "Shāḥin", "id": "Pengisi daya" },
+  { "en": "File", "ar": "مِلَفّ", "tr": "Millaff", "id": "Berkas" },
+  { "en": "Network", "ar": "شَبَكَة", "tr": "Shabaka", "id": "Jaringan" }
+]

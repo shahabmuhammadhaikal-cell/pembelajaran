@@ -1,0 +1,18 @@
+[
+  { "en": "Get up", "ar": "يَنْهَض مِنَ الْفِرَاش", "tr": "Yanhaḍ min al-firāsh", "id": "Bangun dari tempat tidur" },
+  { "en": "Wake up", "ar": "يَسْتَيْقِظ", "tr": "Yastayqiẓ", "id": "Terbangun" },
+  { "en": "Sit down", "ar": "يَجْلِس", "tr": "Yajlis", "id": "Duduk" },
+  { "en": "Stand up", "ar": "يَقِف", "tr": "Yaqif", "id": "Berdiri" },
+  { "en": "Come in", "ar": "يَدْخُل", "tr": "Yadkhul", "id": "Masuk" },
+  { "en": "Go out", "ar": "يَخْرُج", "tr": "Yakhruj", "id": "Keluar" },
+  { "en": "Turn on", "ar": "يُشْغِّل", "tr": "Yushagghil", "id": "Menyalakan" },
+  { "en": "Turn off", "ar": "يُطْفِئ", "tr": "Yuṭfiʾ", "id": "Mematikan" },
+  { "en": "Look for", "ar": "يَبْحَث عَن", "tr": "Yabḥath ʿan", "id": "Mencari" },
+  { "en": "Find out", "ar": "يَكْتَشِف", "tr": "Yaktashif", "id": "Mengetahui" },
+  { "en": "Give up", "ar": "يَسْتَسْلِم", "tr": "Yastaslim", "id": "Menyerah" },
+  { "en": "Take off", "ar": "يَخْلَع", "tr": "Yakhlaʿ", "id": "Melepas" },
+  { "en": "Put on", "ar": "يَلْبَس", "tr": "Yalbas", "id": "Memakai" },
+  { "en": "Run out", "ar": "يَنْفَد", "tr": "Yanfad", "id": "Habis" },
+  { "en": "Pick up", "ar": "يَلْتَقِط", "tr": "Yaltaqiṭ", "id": "Mengambil" },
+  { "en": "Throw away", "ar": "يَرْمِي", "tr": "Yarmī", "id": "Membuang" }
+]

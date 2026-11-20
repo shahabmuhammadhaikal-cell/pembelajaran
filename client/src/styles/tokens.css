@@ -28,6 +28,12 @@
   --maxw: 1180px;
 
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* lapisan aurora & sorotan (diisi per tema) */
+  --aurora-1: rgba(109, 124, 255, 0.2);
+  --aurora-2: rgba(53, 214, 164, 0.14);
+  --aurora-3: rgba(155, 107, 255, 0.16);
+  --glow: 0 18px 44px rgba(109, 124, 255, 0.28);
 }
 
 /* ---------- tema gelap (default) ---------- */
@@ -62,6 +68,11 @@
   --shadow-lg: 0 30px 70px rgba(0, 0, 0, 0.55);
   --ring: 0 0 0 3px rgba(109, 124, 255, 0.35);
   --gradient: linear-gradient(135deg, #6d7cff 0%, #9b6bff 55%, #35d6a4 130%);
+  --aurora-1: rgba(109, 124, 255, 0.22);
+  --aurora-2: rgba(53, 214, 164, 0.14);
+  --aurora-3: rgba(155, 107, 255, 0.18);
+  --glow: 0 18px 44px rgba(109, 124, 255, 0.3);
+  --hairline: linear-gradient(90deg, transparent, rgba(109, 124, 255, 0.6), rgba(53, 214, 164, 0.45), transparent);
 }
 
 /* ---------- tema terang ---------- */
@@ -96,6 +107,11 @@
   --shadow-lg: 0 30px 60px rgba(23, 32, 64, 0.18);
   --ring: 0 0 0 3px rgba(79, 92, 255, 0.25);
   --gradient: linear-gradient(135deg, #4f5cff 0%, #7c3aed 55%, #0ea97a 130%);
+  --aurora-1: rgba(79, 92, 255, 0.16);
+  --aurora-2: rgba(14, 169, 122, 0.12);
+  --aurora-3: rgba(124, 58, 237, 0.12);
+  --glow: 0 18px 40px rgba(79, 92, 255, 0.2);
+  --hairline: linear-gradient(90deg, transparent, rgba(79, 92, 255, 0.5), rgba(14, 169, 122, 0.4), transparent);
 }
 
 html,

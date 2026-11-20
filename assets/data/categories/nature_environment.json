@@ -1,0 +1,20 @@
+[
+  { "en": "Forest", "ar": "غَابَة", "tr": "Ghāba", "id": "Hutan" },
+  { "en": "Desert", "ar": "صَحْرَاء", "tr": "Ṣaḥrāʾ", "id": "Gurun" },
+  { "en": "Valley", "ar": "وَادٍ", "tr": "Wādin", "id": "Lembah" },
+  { "en": "Island", "ar": "جَزِيرَة", "tr": "Jazīra", "id": "Pulau" },
+  { "en": "Lake", "ar": "بُحَيْرَة", "tr": "Buḥayra", "id": "Danau" },
+  { "en": "Waterfall", "ar": "شَلَّال", "tr": "Shallāl", "id": "Air terjun" },
+  { "en": "Sky", "ar": "سَمَاء", "tr": "Samāʾ", "id": "Langit" },
+  { "en": "Earth", "ar": "أَرْض", "tr": "Arḍ", "id": "Bumi" },
+  { "en": "Air", "ar": "هَوَاء", "tr": "Hawāʾ", "id": "Udara" },
+  { "en": "Fire", "ar": "نَار", "tr": "Nār", "id": "Api" },
+  { "en": "Soil", "ar": "تُرَاب", "tr": "Turāb", "id": "Tanah" },
+  { "en": "Plant", "ar": "نَبَات", "tr": "Nabāt", "id": "Tumbuhan" },
+  { "en": "Leaf", "ar": "وَرَقَة", "tr": "Waraqa", "id": "Daun" },
+  { "en": "Seed", "ar": "بَذْرَة", "tr": "Badhra", "id": "Biji" },
+  { "en": "Pollution", "ar": "تَلَوُّث", "tr": "Talawwuth", "id": "Pencemaran" },
+  { "en": "Recycle", "ar": "إِعَادَة تَدْوِير", "tr": "Iʿādat tadwīr", "id": "Daur ulang" },
+  { "en": "Climate", "ar": "مُنَاخ", "tr": "Munākh", "id": "Iklim" },
+  { "en": "Drought", "ar": "جَفَاف", "tr": "Jafāf", "id": "Kekeringan" }
+]

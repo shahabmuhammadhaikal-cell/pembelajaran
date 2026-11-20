@@ -3,6 +3,7 @@ import { useApp } from "../state/useApp.js"
 import { translateText } from "../lib/language.js"
 import { speak } from "../lib/speech.js"
 import * as api from "../lib/api.js"
+import { aiRequestOptions } from "../lib/aiConfig.js"
 import { IconCopy, IconSend, IconSparkles, IconTrash, IconVolume } from "../components/Icons.jsx"
 
 export default function Translate() {
@@ -51,10 +52,7 @@ export default function Translate() {
     if (!text.trim()) return
     setAi({ status: "loading", data: null, error: "" })
     try {
-      const data = await api.aiTranslate(text, result ? result.src : "en", {
-        ollamaUrl: localStorage.getItem("pembelajar_ollama_url") || "",
-        ollamaModel: localStorage.getItem("pembelajar_ollama_model") || ""
-      })
+      const data = await api.aiTranslate(text, result ? result.src : "en", aiRequestOptions())
       setAi({ status: "done", data: data.result, error: "" })
     } catch (error) {
       setAi({ status: "error", data: null, error: error.message })
@@ -152,9 +150,13 @@ export default function Translate() {
         {ai.status === "error" ? (
           <div className="quiz-feedback bad" style={{ marginTop: 14 }}>
             <span>AI tidak tersedia: {ai.error}</span>
-            <span className="faint" style={{ fontSize: 12.5 }}>
-              Pastikan backend punya Ollama
-            </span>
+            <button
+              className="btn btn-ghost btn-sm"
+              style={{ marginTop: 8 }}
+              onClick={() => actions.setUi({ settingsOpen: true })}
+            >
+              Atur server AI
+            </button>
           </div>
         ) : null}
 

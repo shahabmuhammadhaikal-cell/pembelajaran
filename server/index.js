@@ -17,6 +17,13 @@ const { sanitizeAccountPatch } = require("./lib/accountPayload")
 const { verifyPassword, verifyGoogleIdToken } = require("./lib/accountReauth")
 const { createDeletionTickets } = require("./lib/deletionTicket")
 const { createAccountDeletion } = require("./lib/accountDeletion")
+const {
+  resolveAiConfig,
+  getAiStatus,
+  requestAiTranslation,
+  requestAiSuggestionDraft,
+  normalizeAiSourceLang
+} = require("./lib/ai")
 
 const ROOT = path.resolve(__dirname, "..")
 const PORT = Math.max(1, Number(process.env.PORT || 8020) || 8020)
@@ -28,9 +35,6 @@ const CORS_ORIGINS = String(process.env.CORS_ORIGINS || "*")
   .split(",")
   .map(value => value.trim())
   .filter(Boolean)
-const DEFAULT_OLLAMA_BASE_URL = String(process.env.OLLAMA_BASE_URL || "http://127.0.0.1:11434").trim()
-const DEFAULT_OLLAMA_MODEL = String(process.env.OLLAMA_MODEL || "qwen2.5:3b").trim() || "qwen2.5:3b"
-
 const UPLOAD_DIR = path.join(ROOT, "assets", "user-images")
 const MAP_PATH = path.join(UPLOAD_DIR, "user_images.json")
 const ANIMALS_DIR = path.join(ROOT, "assets", "animals")
@@ -123,16 +127,6 @@ function sanitizeName(value) {
     .replace(/[^a-z0-9_-]+/g, "-")
     .replace(/-{2,}/g, "-")
     .replace(/^-+|-+$/g, "") || "img"
-}
-
-function normalizeRemoteUrl(value) {
-  const raw = String(value || "").trim()
-  if (!raw) return ""
-  try {
-    return new URL(raw.endsWith("/") ? raw : `${raw}/`).toString()
-  } catch {
-    return ""
-  }
 }
 
 function buildEntryKey(entry) {
@@ -244,150 +238,6 @@ function sendError(res, status, message) {
   res.status(status).json({ ok: false, error: message })
 }
 
-function normalizeAiSourceLang(value) {
-  const raw = String(value || "").trim().toLowerCase()
-  if (raw.startsWith("ar")) return "ar"
-  if (raw.startsWith("id")) return "id"
-  return "en"
-}
-
-function resolveOllamaConfig(source) {
-  const body = source && typeof source === "object" ? source : {}
-  return {
-    baseUrl: normalizeRemoteUrl(body.ollamaUrl) || normalizeRemoteUrl(DEFAULT_OLLAMA_BASE_URL),
-    model: String(body.ollamaModel || DEFAULT_OLLAMA_MODEL).trim() || DEFAULT_OLLAMA_MODEL
-  }
-}
-
-function buildOllamaTranslatePrompt(text, sourceLang) {
-  return [
-    "You are a translation assistant for English, Arabic, and Indonesian.",
-    "Translate the user input into concise natural English, Arabic, and Indonesian.",
-    "Return strict JSON only with keys: en, ar, id, explanation.",
-    "The explanation must be in Indonesian, short, and mention important nuance if needed.",
-    `Detected source language: ${sourceLang}.`,
-    `Input: ${text}`
-  ].join("\n")
-}
-
-function buildOllamaSuggestionDraftPrompt(input) {
-  const source = input && typeof input === "object" ? input : {}
-  return [
-    "You help draft word suggestion forms for a language-learning app.",
-    "Return strict JSON only with keys: kind, request, meaning, category, note.",
-    "Allowed kind values: word, phrase, topic.",
-    "Use Indonesian for meaning, category, and note.",
-    "Keep category short and practical.",
-    "Request text should be the cleaned main request from the user.",
-    `Current kind hint: ${String(source.kind || "").trim() || "word"}.`,
-    `Current request: ${String(source.request || "").trim()}.`,
-    `Current meaning: ${String(source.meaning || "").trim()}.`,
-    `Current category: ${String(source.category || "").trim()}.`,
-    `Current note: ${String(source.note || "").trim()}.`,
-    `Current selected study category: ${String(source.currentCategory || "").trim()}.`
-  ].join("\n")
-}
-
-function normalizeAiTranslationPayload(payload) {
-  const data = payload && typeof payload === "object" ? payload : {}
-  return {
-    en: String(data.en || "").trim(),
-    ar: String(data.ar || "").trim(),
-    id: String(data.id || "").trim(),
-    explanation: String(data.explanation || "").trim()
-  }
-}
-
-function normalizeAiSuggestionDraftPayload(payload) {
-  const data = payload && typeof payload === "object" ? payload : {}
-  const rawKind = String(data.kind || "word").trim().toLowerCase()
-  return {
-    kind: ["word", "phrase", "topic"].includes(rawKind) ? rawKind : "word",
-    request: String(data.request || "").trim(),
-    meaning: String(data.meaning || "").trim(),
-    category: String(data.category || "").trim(),
-    note: String(data.note || "").trim()
-  }
-}
-
-async function fetchOllamaJson(endpoint, body) {
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 45_000)
-  try {
-    const res = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      signal: controller.signal
-    })
-    const json = await res.json().catch(() => ({}))
-    if (!res.ok) {
-      const message = String(json && (json.error || json.message) || `Ollama HTTP ${res.status}`)
-      throw new Error(message)
-    }
-    return json
-  } finally {
-    clearTimeout(timeout)
-  }
-}
-
-async function checkOllamaAvailability(baseUrl) {
-  const endpoint = new URL("api/tags", baseUrl).toString()
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 5_000)
-  try {
-    const res = await fetch(endpoint, { signal: controller.signal })
-    if (!res.ok) return false
-    return true
-  } catch {
-    return false
-  } finally {
-    clearTimeout(timeout)
-  }
-}
-
-async function requestOllamaTranslation(config, text, sourceLang) {
-  const endpoint = new URL("api/generate", config.baseUrl).toString()
-  const json = await fetchOllamaJson(endpoint, {
-    model: config.model,
-    prompt: buildOllamaTranslatePrompt(text, sourceLang),
-    stream: false,
-    format: "json",
-    options: {
-      temperature: 0.2
-    }
-  })
-  const raw = String(json && json.response || "").trim()
-  if (!raw) throw new Error("Ollama returned empty response")
-  const parsed = JSON.parse(raw)
-  const normalized = normalizeAiTranslationPayload(parsed)
-  if (!normalized.en && !normalized.ar && !normalized.id) {
-    throw new Error("Ollama response missing translation fields")
-  }
-  return normalized
-}
-
-async function requestOllamaSuggestionDraft(config, input) {
-  const endpoint = new URL("api/generate", config.baseUrl).toString()
-  const json = await fetchOllamaJson(endpoint, {
-    model: config.model,
-    prompt: buildOllamaSuggestionDraftPrompt(input),
-    stream: false,
-    format: "json",
-    options: {
-      temperature: 0.2
-    }
-  })
-  const raw = String(json && json.response || "").trim()
-  if (!raw) throw new Error("Ollama returned empty response")
-  const parsed = JSON.parse(raw)
-  const normalized = normalizeAiSuggestionDraftPayload(parsed)
-  if (!normalized.request) {
-    throw new Error("Ollama response missing request field")
-  }
-  return normalized
-}
-
 function issueAdminToken() {
   const token = crypto.randomUUID()
   adminTokens.set(token, Date.now() + 1000 * 60 * 60 * 12)
@@ -483,6 +333,7 @@ async function createApp() {
   })
 
   app.get("/api/health", async (_req, res) => {
+    const ai = resolveAiConfig()
     let lexiconStats = null
     try {
       const lexicon = await lexiconCache.get()
@@ -498,8 +349,12 @@ async function createApp() {
       lexicon: lexiconStats,
       adminConfigured: !!ADMIN_PASSWORD,
       loginConfigured: authConfigured(),
-      ollamaBaseUrl: normalizeRemoteUrl(DEFAULT_OLLAMA_BASE_URL),
-      ollamaModel: DEFAULT_OLLAMA_MODEL
+      ai: {
+        provider: ai.provider,
+        baseUrl: ai.baseUrl,
+        model: ai.model,
+        keyConfigured: Boolean(ai.apiKey)
+      },
     })
   })
 
@@ -629,20 +484,15 @@ async function createApp() {
 
   app.delete("/api/account", requireUser(), accountDeletion.deleteAccount)
 
-  app.get("/ai/status", async (_req, res) => {
-    const config = resolveOllamaConfig()
-    if (!config.baseUrl) {
-      res.json({ ok: true, available: false, configured: false, baseUrl: "", model: config.model })
-      return
+  app.get("/ai/status", async (req, res) => {
+    try {
+      const status = await getAiStatus(req.query)
+      res.set("Cache-Control", "no-store")
+      res.json({ ok: true, ...status })
+    } catch (error) {
+      logEvent("ai_status_error", error.message)
+      sendError(res, 502, `AI status error: ${error.message}`)
     }
-    const available = await checkOllamaAvailability(config.baseUrl)
-    res.json({
-      ok: true,
-      configured: true,
-      available,
-      baseUrl: config.baseUrl,
-      model: config.model
-    })
   })
 
   app.post("/ai/translate", async (req, res) => {
@@ -653,31 +503,36 @@ async function createApp() {
         sendError(res, 400, "text is required")
         return
       }
-      const config = resolveOllamaConfig(req.body)
-      if (!config.baseUrl) {
-        sendError(res, 503, "Ollama URL is not configured")
+      if (text.length > 2000) {
+        sendError(res, 413, "text is too long (max 2000 characters)")
         return
       }
-      const result = await requestOllamaTranslation(config, text, sourceLang)
+      const config = resolveAiConfig(req.body)
+      if (!config.baseUrl) {
+        sendError(res, 503, "AI base URL is not configured")
+        return
+      }
+      const result = await requestAiTranslation(config, text, sourceLang)
       res.json({
         ok: true,
         sourceLang,
+        provider: config.provider,
         model: config.model,
         baseUrl: config.baseUrl,
         result
       })
     } catch (error) {
       logEvent("ai_translate_error", error.message)
-      sendError(res, 502, `Ollama error: ${error.message}`)
+      sendError(res, 502, `AI error: ${error.message}`)
     }
   })
 
   app.post("/ai/word-suggestion-draft", async (req, res) => {
     try {
       const source = req.body && typeof req.body === "object" ? req.body : {}
-      const config = resolveOllamaConfig(source)
+      const config = resolveAiConfig(source)
       if (!config.baseUrl) {
-        sendError(res, 503, "Ollama URL is not configured")
+        sendError(res, 503, "AI base URL is not configured")
         return
       }
       const draftInput = {
@@ -692,16 +547,17 @@ async function createApp() {
         sendError(res, 400, "request, meaning, or note is required")
         return
       }
-      const result = await requestOllamaSuggestionDraft(config, draftInput)
+      const result = await requestAiSuggestionDraft(config, draftInput)
       res.json({
         ok: true,
+        provider: config.provider,
         model: config.model,
         baseUrl: config.baseUrl,
         result
       })
     } catch (error) {
       logEvent("ai_word_suggestion_draft_error", error.message)
-      sendError(res, 502, `Ollama error: ${error.message}`)
+      sendError(res, 502, `AI error: ${error.message}`)
     }
   })
 

@@ -3,6 +3,7 @@ import Modal from "../components/Modal.jsx"
 import { useApp } from "../state/useApp.js"
 import * as api from "../lib/api.js"
 import { getAdminToken, setAdminToken } from "../lib/storage.js"
+import { getAiConfig, saveAiConfig } from "../lib/aiConfig.js"
 import { IconDownload, IconUpload } from "../components/Icons.jsx"
 
 function Switch({ on, onToggle, label }) {
@@ -23,10 +24,14 @@ export default function SettingsModal() {
   const [apiBase, setApiBase] = useState("")
   const [apiStatus, setApiStatus] = useState("")
   const [admin, setAdmin] = useState({ loggedIn: false, username: "", usernameInput: "", passwordInput: "", error: "" })
+  const [aiConfig, setAiConfig] = useState({ url: "", model: "" })
+  const [aiStatus, setAiStatus] = useState({ state: "", text: "", models: [] })
 
   useEffect(() => {
     if (!open) return
     setApiBase(helpers.apiBase() || "")
+    setAiConfig(getAiConfig())
+    setAiStatus({ state: "", text: "", models: [] })
   }, [open, helpers])
 
   useEffect(() => {
@@ -55,6 +60,42 @@ export default function SettingsModal() {
     helpers.setApiBase(apiBase)
     actions.pushToast("Alamat API disimpan (muat ulang untuk menerapkan)", "success")
     testApi()
+  }
+
+  const testAi = async (config = aiConfig) => {
+    setAiStatus({ state: "loading", text: "menguji koneksi AI…", models: [] })
+    try {
+      const data = await api.aiStatus({ ollamaUrl: config.url, ollamaModel: config.model })
+      const provider = data.provider === "openai" ? "OpenAI-compatible" : "Ollama"
+      const models = Array.isArray(data.models) ? data.models : []
+      if (data.available) {
+        const detected = models[0] || data.model || ""
+        if (!config.model && detected) {
+          setAiConfig(previous => (previous.model ? previous : { ...previous, model: detected }))
+        }
+        setAiStatus({
+          state: "ok",
+          text: `tersambung · ${provider} · ${models.length} model terpasang · memakai ${data.model}` +
+            (!config.model && detected ? ` — model ${detected} diisi otomatis, klik Simpan & uji untuk memakainya` : ""),
+          models
+        })
+      } else {
+        setAiStatus({
+          state: "bad",
+          text: data.error || `tidak tersambung ke ${data.baseUrl}`,
+          models
+        })
+      }
+    } catch (error) {
+      setAiStatus({ state: "bad", text: error.message, models: [] })
+    }
+  }
+
+  const applyAiConfig = () => {
+    const saved = saveAiConfig(aiConfig)
+    setAiConfig(saved)
+    actions.pushToast("Setelan AI disimpan", "success")
+    testAi(saved)
   }
 
   const exportData = () => {
@@ -199,6 +240,87 @@ export default function SettingsModal() {
             label="Spasi kata"
           />
         </div>
+      </div>
+
+      <div className="settings-section">
+        <h4>Bantuan AI</h4>
+        <div className="form-grid">
+          <div className="form-row" style={{ gridColumn: "1 / -1" }}>
+            <label>Alamat server AI (Ollama atau endpoint OpenAI-compatible)</label>
+            <input
+              className="input"
+              placeholder="http://127.0.0.1:11434 atau https://…/v1"
+              value={aiConfig.url}
+              onChange={event => setAiConfig(previous => ({ ...previous, url: event.target.value }))}
+            />
+            <span className="note">
+              Kosongkan untuk memakai setelan server. URL berakhiran <code>/v1</code> otomatis memakai protokol
+              OpenAI-compatible. Untuk Ollama Cloud (gratis dengan kredit awal), pakai{" "}
+              <code>https://ollama.com/v1</code> dan isi <code>AI_API_KEY</code> di server. Biarkan kolom model
+              kosong: model pertama yang terdeteksi saat <strong>Uji koneksi</strong> akan diisi otomatis, karena
+              model yang tersedia bergantung pada paket akun Anda.
+            </span>
+          </div>
+          <div className="form-row">
+            <label>Model</label>
+            <input
+              className="input"
+              list="ai-model-options"
+              placeholder="qwen2.5:3b"
+              value={aiConfig.model}
+              onChange={event => setAiConfig(previous => ({ ...previous, model: event.target.value }))}
+            />
+            <datalist id="ai-model-options">
+              {aiStatus.models.map(model => (
+                <option key={model} value={model} />
+              ))}
+            </datalist>
+          </div>
+        </div>
+        <div className="chip-row" style={{ marginTop: 10 }}>
+          <button className="btn btn-primary btn-sm" onClick={applyAiConfig}>
+            Simpan &amp; uji
+          </button>
+          <button
+            className="btn btn-ghost btn-sm"
+            onClick={() => {
+              setAiConfig({ url: "https://ollama.com/v1", model: "" })
+              actions.pushToast("Ollama Cloud dipilih — isi AI_API_KEY di server, lalu Uji koneksi", "success")
+            }}
+          >
+            Ollama Cloud
+          </button>
+          <button className="btn btn-ghost btn-sm" onClick={() => testAi()} disabled={aiStatus.state === "loading"}>
+            {aiStatus.state === "loading" ? <span className="spinner" /> : null} Uji koneksi
+          </button>
+          <button
+            className="btn btn-ghost btn-sm"
+            onClick={() => {
+              const cleared = saveAiConfig({ url: "", model: "" })
+              setAiConfig(cleared)
+              setAiStatus({ state: "", text: "", models: [] })
+              actions.pushToast("Memakai setelan AI dari server", "success")
+            }}
+          >
+            Pakai bawaan server
+          </button>
+        </div>
+        <p
+          className="note"
+          style={{ marginTop: 8, color: aiStatus.state === "bad" ? "var(--danger)" : undefined }}
+        >
+          {aiStatus.text || "Belum diuji. Tombol Bantu AI di tab Terjemah dan Rapikan dengan AI memakai koneksi ini."}
+          {aiStatus.state === "bad" && aiConfig.url.includes("ollama.com") ? (
+            <>
+              {" "}
+              Ollama Cloud butuh API key di server (<code>AI_API_KEY</code>), bukan di browser.
+            </>
+          ) : null}
+        </p>
+        <p className="note">
+          Kunci API untuk layanan hosted hanya disimpan di server (<code>AI_API_KEY</code>), tidak pernah dikirim ke
+          browser.
+        </p>
       </div>
 
       <div className="settings-section">

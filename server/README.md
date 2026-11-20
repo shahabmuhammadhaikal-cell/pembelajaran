@@ -20,13 +20,25 @@ Default port: `8020`
 - `CORS_ORIGINS`: daftar origin dipisah koma, default `*`
 - `ADMIN_USERNAME`: username login admin backend
 - `ADMIN_PASSWORD`: password login admin backend
-- `OLLAMA_BASE_URL`: URL server Ollama, default `http://127.0.0.1:11434`
-- `OLLAMA_MODEL`: model default untuk bantuan AI, contoh `qwen2.5:3b`
+- `AI_PROVIDER`: `ollama` (default) atau `openai` (endpoint OpenAI-compatible)
+- `AI_BASE_URL`: URL server AI, default `http://127.0.0.1:11434`; untuk layanan hosted isi `https://.../v1`
+- `AI_MODEL`: model default, contoh `qwen2.5:3b`
+- `AI_API_KEY`: kunci layanan hosted (hanya server, jangan di-commit)
+- `AI_TIMEOUT_MS`: batas waktu permintaan AI, default `45000`
+- Nama lama `OLLAMA_BASE_URL`, `OLLAMA_MODEL`, `OLLAMA_API_KEY` masih didukung.
+
+URL berakhiran `/v1` otomatis memakai protokol OpenAI-compatible (`/v1/models`,
+`/v1/chat/completions`); selain itu dipakai API native Ollama (`/api/tags`,
+`/api/generate`). Untuk Ollama Cloud isi `AI_BASE_URL=https://ollama.com/v1` dan
+`AI_API_KEY`; `response_format` tidak dikirim ke `ollama.com` karena model cloud
+belum mendukung structured output, dan ada fallback otomatis bila endpoint
+menolaknya. Daftar model dicoba lewat `/v1/models` lalu `/api/tags`. Klien boleh mengirim `ollamaUrl`/`ollamaModel` untuk memakai
+Ollama di jaringan lokalnya, tetapi kunci API tidak pernah diterima dari klien.
 
 ## Endpoint
 
 - `GET /api/health`
-- `GET /ai/status`
+- `GET /ai/status?ollamaUrl=&ollamaModel=` — status koneksi + daftar model
 - `POST /ai/translate`
 - `POST /ai/word-suggestion-draft`
 - `GET /tts`

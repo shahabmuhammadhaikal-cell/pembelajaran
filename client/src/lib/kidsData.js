@@ -259,6 +259,162 @@ export const KID_TOPICS = [
       item("myname", "🏷️", "My name is…", "اِسْمِي…", "Ismī…", "Nama saya…"),
       item("iloveyou", "💖", "I love you", "أُحِبُّكَ", "Uḥibbuka", "Aku sayang kamu")
     ]
+  },
+  {
+    id: "verbs",
+    label: "Kata Kerja",
+    emoji: "🏃",
+    color: "#f97316",
+    blurb: "Kegiatan sehari-hari",
+    items: [
+      item("v-run", "🏃", "Run", "يَجْرِي", "Yajrī", "Berlari"),
+      item("v-jump", "🦘", "Jump", "يَقْفِز", "Yaqfiz", "Melompat"),
+      item("v-eat", "🥣", "Eat", "يَأْكُل", "Yaʾkul", "Makan"),
+      item("v-drink", "🥤", "Drink", "يَشْرَب", "Yashrab", "Minum"),
+      item("v-sleep", "😴", "Sleep", "يَنَام", "Yanām", "Tidur"),
+      item("v-read", "📖", "Read", "يَقْرَأ", "Yaqraʾ", "Membaca"),
+      item("v-write", "✍️", "Write", "يَكْتُب", "Yaktub", "Menulis"),
+      item("v-play", "🎮", "Play", "يَلْعَب", "Yalʿab", "Bermain"),
+      item("v-sing", "🎤", "Sing", "يُغَنِّي", "Yughannī", "Bernyanyi"),
+      item("v-swim", "🏊", "Swim", "يَسْبَح", "Yasbaḥ", "Berenang"),
+      item("v-draw", "🎨", "Draw", "يَرْسُم", "Yarsum", "Menggambar"),
+      item("v-smile", "😊", "Smile", "يَبْتَسِم", "Yabtasim", "Tersenyum")
+    ]
+  },
+  {
+    id: "food",
+    label: "Makanan",
+    emoji: "🍚",
+    color: "#d97706",
+    blurb: "Di meja makan",
+    items: [
+      item("fd-rice", "🍚", "Rice", "أَرُزّ", "Aruzz", "Nasi"),
+      item("fd-bread", "🍞", "Bread", "خُبْز", "Khubz", "Roti"),
+      item("fd-milk", "🥛", "Milk", "حَلِيب", "Ḥalīb", "Susu"),
+      item("fd-water", "💧", "Water", "مَاء", "Māʾ", "Air"),
+      item("fd-egg", "🥚", "Egg", "بَيْضَة", "Bayḍa", "Telur"),
+      item("fd-chicken", "🍗", "Chicken", "دَجَاج", "Dajāj", "Ayam"),
+      item("fd-fish", "🐟", "Fish", "سَمَك", "Samak", "Ikan"),
+      item("fd-cheese", "🧀", "Cheese", "جُبْن", "Jubn", "Keju"),
+      item("fd-cake", "🍰", "Cake", "كَعْك", "Kaʿk", "Kue"),
+      item("fd-honey", "🍯", "Honey", "عَسَل", "ʿAsal", "Madu"),
+      item("fd-soup", "🍲", "Soup", "شُورْبَا", "Shūrbā", "Sup"),
+      item("fd-tea", "🍵", "Tea", "شَاي", "Shāy", "Teh")
+    ]
+  },
+  {
+    id: "transport",
+    label: "Kendaraan",
+    emoji: "🚗",
+    color: "#0ea5e9",
+    blurb: "Cara kita bepergian",
+    items: [
+      item("tr-car", "🚗", "Car", "سَيَّارَة", "Sayyāra", "Mobil"),
+      item("tr-bus", "🚌", "Bus", "حَافِلَة", "Ḥāfila", "Bus"),
+      item("tr-bicycle", "🚲", "Bicycle", "دَرَّاجَة", "Darrāja", "Sepeda"),
+      item("tr-train", "🚂", "Train", "قِطَار", "Qiṭār", "Kereta"),
+      item("tr-plane", "✈️", "Airplane", "طَائِرَة", "Ṭāʾira", "Pesawat"),
+      item("tr-boat", "⛵", "Boat", "قَارِب", "Qārib", "Perahu"),
+      item("tr-motorcycle", "🏍️", "Motorcycle", "دَرَّاجَة نَارِيَّة", "Darrāja nāriyya", "Motor"),
+      item("tr-truck", "🚚", "Truck", "شَاحِنَة", "Shāḥina", "Truk"),
+      item("tr-helicopter", "🚁", "Helicopter", "مِرْوَحِيَّة", "Mirwaḥiyya", "Helikopter"),
+      item("tr-rocket", "🚀", "Rocket", "صَارُوخ", "Ṣārūkh", "Roket")
+    ]
+  },
+  {
+    id: "nature",
+    label: "Alam",
+    emoji: "🌳",
+    color: "#16a34a",
+    blurb: "Keindahan sekitar kita",
+    items: [
+      item("nt-sun", "☀️", "Sun", "شَمْس", "Shams", "Matahari"),
+      item("nt-moon", "🌙", "Moon", "قَمَر", "Qamar", "Bulan"),
+      item("nt-star", "⭐", "Star", "نَجْمَة", "Najma", "Bintang"),
+      item("nt-tree", "🌳", "Tree", "شَجَرَة", "Shajara", "Pohon"),
+      item("nt-flower", "🌸", "Flower", "زَهْرَة", "Zahra", "Bunga"),
+      item("nt-mountain", "⛰️", "Mountain", "جَبَل", "Jabal", "Gunung"),
+      item("nt-river", "🏞️", "River", "نَهْر", "Nahr", "Sungai"),
+      item("nt-sea", "🌊", "Sea", "بَحْر", "Baḥr", "Laut"),
+      item("nt-cloud", "☁️", "Cloud", "سَحَابَة", "Saḥāba", "Awan"),
+      item("nt-rain", "🌧️", "Rain", "مَطَر", "Maṭar", "Hujan")
+    ]
+  },
+  {
+    id: "home",
+    label: "Rumah",
+    emoji: "🏠",
+    color: "#db2777",
+    blurb: "Benda di dalam rumah",
+    items: [
+      item("hm-house", "🏠", "House", "بَيْت", "Bayt", "Rumah"),
+      item("hm-door", "🚪", "Door", "بَاب", "Bāb", "Pintu"),
+      item("hm-window", "🪟", "Window", "نَافِذَة", "Nāfidha", "Jendela"),
+      item("hm-bed", "🛏️", "Bed", "سَرِير", "Sarīr", "Tempat tidur"),
+      item("hm-chair", "🪑", "Chair", "كُرْسِيّ", "Kursī", "Kursi"),
+      item("hm-lamp", "💡", "Lamp", "مِصْبَاح", "Miṣbāḥ", "Lampu"),
+      item("hm-key", "🔑", "Key", "مِفْتَاح", "Miftāḥ", "Kunci"),
+      item("hm-clock", "⏰", "Clock", "سَاعَة", "Sāʿa", "Jam"),
+      item("hm-spoon", "🥄", "Spoon", "مِلْعَقَة", "Milʿaqa", "Sendok"),
+      item("hm-soap", "🧼", "Soap", "صَابُون", "Ṣābūn", "Sabun")
+    ]
+  },
+  {
+    id: "clothes",
+    label: "Pakaian",
+    emoji: "👕",
+    color: "#7c3aed",
+    blurb: "Yang kita pakai",
+    items: [
+      item("cl-shirt", "👕", "Shirt", "قَمِيص", "Qamīṣ", "Kemeja"),
+      item("cl-pants", "👖", "Pants", "بَنْطَلُون", "Banṭalūn", "Celana"),
+      item("cl-shoes", "👟", "Shoes", "حِذَاء", "Ḥidhāʾ", "Sepatu"),
+      item("cl-hat", "🎩", "Hat", "قُبَّعَة", "Qubbaʿa", "Topi"),
+      item("cl-dress", "👗", "Dress", "فُسْتَان", "Fustān", "Gaun"),
+      item("cl-socks", "🧦", "Socks", "جَوْرَب", "Jawrab", "Kaus kaki"),
+      item("cl-jacket", "🧥", "Jacket", "سُتْرَة", "Sutra", "Jaket"),
+      item("cl-glasses", "👓", "Glasses", "نَظَّارَة", "Naẓẓāra", "Kacamata"),
+      item("cl-bag", "🎒", "Bag", "حَقِيبَة", "Ḥaqība", "Tas"),
+      item("cl-umbrella", "☂️", "Umbrella", "مِظَلَّة", "Miẓalla", "Payung")
+    ]
+  },
+  {
+    id: "feelings",
+    label: "Perasaan",
+    emoji: "😊",
+    color: "#0891b2",
+    blurb: "Kenali rasa di hati",
+    items: [
+      item("fl-happy", "😄", "Happy", "سَعِيد", "Saʿīd", "Senang"),
+      item("fl-sad", "😢", "Sad", "حَزِين", "Ḥazīn", "Sedih"),
+      item("fl-angry", "😠", "Angry", "غَاضِب", "Ghāḍib", "Marah"),
+      item("fl-tired", "😫", "Tired", "مُتْعَب", "Mutʿab", "Lelah"),
+      item("fl-hungry", "🤤", "Hungry", "جَائِع", "Jāʾiʿ", "Lapar"),
+      item("fl-thirsty", "🚰", "Thirsty", "عَطْشَان", "ʿAṭshān", "Haus"),
+      item("fl-scared", "😨", "Scared", "خَائِف", "Khāʾif", "Takut"),
+      item("fl-sleepy", "🥱", "Sleepy", "نَاعِس", "Nāʿis", "Mengantuk"),
+      item("fl-excited", "🤩", "Excited", "مُتَحَمِّس", "Mutaḥammis", "Bersemangat"),
+      item("fl-calm", "😌", "Calm", "هَادِئ", "Hādiʾ", "Tenang")
+    ]
+  },
+  {
+    id: "weather",
+    label: "Cuaca",
+    emoji: "🌦️",
+    color: "#e11d48",
+    blurb: "Langit hari ini",
+    items: [
+      item("wc-sunny", "☀️", "Sunny", "مُشْمِس", "Mushmis", "Cerah"),
+      item("wc-rainy", "🌧️", "Rainy", "مُمْطِر", "Mumṭir", "Hujan"),
+      item("wc-cloudy", "☁️", "Cloudy", "غَائِم", "Ghāʾim", "Berawan"),
+      item("wc-windy", "🌬️", "Windy", "عَاصِف", "ʿĀṣif", "Berangin"),
+      item("wc-hot", "🔥", "Hot", "حَار", "Ḥārr", "Panas"),
+      item("wc-cold", "❄️", "Cold", "بَارِد", "Bārid", "Dingin"),
+      item("wc-snow", "🌨️", "Snow", "ثَلْج", "Thalj", "Salju"),
+      item("wc-rainbow", "🌈", "Rainbow", "قَوْس قُزَح", "Qaws quzaḥ", "Pelangi"),
+      item("wc-storm", "⛈️", "Storm", "عَاصِفَة", "ʿĀṣifa", "Badai"),
+      item("wc-fog", "🌫️", "Fog", "ضَبَاب", "Ḍabāb", "Kabut")
+    ]
   }
 ]
 
