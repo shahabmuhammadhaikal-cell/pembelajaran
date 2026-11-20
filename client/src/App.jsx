@@ -4,16 +4,19 @@ import Tabs from "./components/Tabs.jsx"
 import Footer from "./components/Footer.jsx"
 import Toasts from "./components/Toast.jsx"
 import Dashboard from "./views/Dashboard.jsx"
+import Kids from "./views/Kids.jsx"
 import Cards from "./views/Cards.jsx"
 import Quiz from "./views/Quiz.jsx"
 import Phrases from "./views/Phrases.jsx"
 import Translate from "./views/Translate.jsx"
 import SettingsModal from "./views/SettingsModal.jsx"
 import SuggestionsModal from "./views/SuggestionsModal.jsx"
+import AccountModal from "./components/AccountModal.jsx"
 import { useApp } from "./state/useApp.js"
 
 const VIEWS = {
   dashboard: Dashboard,
+  kids: Kids,
   cards: Cards,
   quiz: Quiz,
   phrases: Phrases,
@@ -65,7 +68,7 @@ export default function App() {
       const tag = (event.target && event.target.tagName || "").toLowerCase()
       if (["input", "textarea", "select"].includes(tag)) return
       if (event.metaKey || event.ctrlKey || event.altKey) return
-      const map = { 1: "dashboard", 2: "cards", 3: "quiz", 4: "phrases", 5: "translate" }
+      const map = { 1: "dashboard", 2: "kids", 3: "cards", 4: "quiz", 5: "phrases", 6: "translate" }
       // Di tab Kuis, angka 1-4 dipakai untuk memilih jawaban, bukan pindah tab.
       const quizOwnsDigits = state.ui.tab === "quiz"
       if (map[event.key] && !quizOwnsDigits) {
@@ -98,6 +101,7 @@ export default function App() {
       <Footer />
       <SettingsModal />
       <SuggestionsModal />
+      <AccountModal />
       <Toasts />
     </div>
   )

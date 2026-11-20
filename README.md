@@ -70,15 +70,24 @@ Backend otomatis menyajikan `client/dist` bila ada — jadi satu service Render 
 
 Workflow [.github/workflows/deploy-pages.yml](.github/workflows/deploy-pages.yml) sudah ada: setiap push ke `main` mem-build `client/` dan men-deploy `client/dist` ke Pages. Aktifkan di **Settings → Pages → Source: GitHub Actions**.
 
-Agar frontend tahu alamat backend, edit [client/public/app.config.js](client/public/app.config.js):
+Build production membaca alamat backend dari `VITE_API_BASE` di [client/.env.production](client/.env.production) (default `https://pembelajaran-api.onrender.com/`, ganti bila domain Render kamu berbeda):
 
-```js
-window.PEMBELAJAR_CONFIG = Object.assign({
-  apiBase: "https://pembelajaran-api.onrender.com/"
-}, window.PEMBELAJAR_CONFIG || {})
+```bash
+VITE_API_BASE=https://pembelajaran-api.onrender.com/
 ```
 
-Lalu commit + push agar Pages di-build ulang. Atau lewat **Pengaturan → Server & API** langsung di aplikasi (tersimpan per perangkat).
+`npm run dev` tidak membaca file itu, jadi saat development semua panggilan `/api`, `/tts`, dan `/ai` tetap lewat proxy same-origin di `vite.config.js`. Jalur alternatif (tanpa build ulang): isi `apiBase` di [client/public/app.config.js](client/public/app.config.js) atau lewat **Pengaturan → Server & API** di aplikasi (tersimpan per perangkat); nilai runtime itu menang atas `VITE_API_BASE`.
+
+### 1b. Frontend → Firebase Hosting
+
+[firebase.json](firebase.json) sudah menyajikan `client/dist`:
+
+```bash
+cd client && npm run build
+firebase deploy --only hosting --project pembelajaran-90f14
+```
+
+Karena Hosting tidak mem-proxy `/api` ke server lain, build hosted wajib memakai `VITE_API_BASE` absolut di atas. Tambahkan juga domain hosting ke **Firebase Authentication → Settings → Authorized domains** (`pembelajaran-90f14.web.app` dan `pembelajaran-90f14.firebaseapp.com`) agar login Google bekerja.
 
 > Mode fallback: bila `app.config.js` tidak diisi, aplikasi tetap jalan memakai `client/public/data` (dataset statis) + localStorage — hanya fitur server yang mati.
 

@@ -67,10 +67,13 @@ OLLAMA_MODEL=qwen2.5:3b
 
 ## Frontend GitHub Pages
 
-Frontend sekarang bisa membaca file konfigurasi root [app.config.js](file:///c:/Users/haika/Documents/project_trae/pembelajaran/app.config.js).
-Untuk deploy GitHub Pages, isi `apiBase` dengan URL backend publik Anda.
+Build production membaca URL backend dari `VITE_API_BASE` di `client/.env.production`;
+saat `npm run dev`, nilai itu tidak dipakai sehingga frontend tetap memakai proxy
+same-origin ke `http://localhost:8020`.
 
-Contoh:
+Override runtime (menang atas build) tetap tersedia lewat
+`window.PEMBELAJAR_CONFIG.apiBase` di `client/public/app.config.js` atau menu
+**Pengaturan → Server & API**:
 
 ```js
 window.PEMBELAJAR_CONFIG = Object.assign({

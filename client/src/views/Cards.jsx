@@ -96,7 +96,7 @@ export default function Cards() {
     () => (item ? srsSnapshot(state.progress.srs[srsKey(item)]) : null),
     [item, state.progress.srs]
   )
-  const isFavorite = item ? !!state.progress.favorites[srsKey(item)] : false
+  const isFavorite = item ? Number(state.progress.favorites[srsKey(item)]) > 0 : false
   const goal = state.settings.dailyGoal || 10
   const done = state.progress.completedToday || 0
 

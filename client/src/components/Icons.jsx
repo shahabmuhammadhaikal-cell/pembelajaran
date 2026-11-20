@@ -12,6 +12,21 @@ const base = size => ({
   "aria-hidden": true
 })
 
+export const IconKids = ({ size = 18 }) => (
+  <svg {...base(size)}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M8.6 10h.01M15.4 10h.01" />
+    <path d="M8.4 14.3a4.5 4.5 0 0 0 7.2 0" />
+  </svg>
+)
+
+export const IconUser = ({ size = 18 }) => (
+  <svg {...base(size)}>
+    <circle cx="12" cy="8.4" r="3.6" />
+    <path d="M4.8 20a7.2 7.2 0 0 1 14.4 0" />
+  </svg>
+)
+
 export const IconGrid = ({ size = 18 }) => (
   <svg {...base(size)}>
     <rect x="3" y="3" width="7" height="7" rx="2" />

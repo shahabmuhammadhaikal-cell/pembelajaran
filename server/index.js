@@ -11,6 +11,12 @@ const { parse } = require("csv-parse/sync")
 const googleTTS = require("google-tts-api")
 const { createStore } = require("./db")
 const { createLexiconCache } = require("./lib/lexicon")
+const { requireUser, authConfigured, deleteAuthUser } = require("./lib/accountAuth")
+const { mergeAccount } = require("./lib/accountMerge")
+const { sanitizeAccountPatch } = require("./lib/accountPayload")
+const { verifyPassword, verifyGoogleIdToken } = require("./lib/accountReauth")
+const { createDeletionTickets } = require("./lib/deletionTicket")
+const { createAccountDeletion } = require("./lib/accountDeletion")
 
 const ROOT = path.resolve(__dirname, "..")
 const PORT = Math.max(1, Number(process.env.PORT || 8020) || 8020)
@@ -41,6 +47,37 @@ const upload = multer({
 
 const ttsRate = new Map()
 const adminTokens = new Map()
+const accountWriteRate = new Map()
+const deletionAttempts = new Map()
+const deletionTickets = createDeletionTickets()
+
+/** Batasi percobaan verifikasi hapus akun: 5 kali per 15 menit per uid. */
+function allowDeletionAttempt(uid) {
+  const now = Date.now()
+  if (deletionAttempts.size > 5000) deletionAttempts.clear()
+  const items = (deletionAttempts.get(uid) || []).filter(ts => now - ts < 15 * 60_000)
+  if (items.length >= 5) {
+    deletionAttempts.set(uid, items)
+    return false
+  }
+  items.push(now)
+  deletionAttempts.set(uid, items)
+  return true
+}
+
+/** Batasi penyimpanan akun agar satu klien tidak membanjiri Firestore. */
+function allowAccountWrite(uid) {
+  const now = Date.now()
+  if (accountWriteRate.size > 5000) accountWriteRate.clear()
+  const items = (accountWriteRate.get(uid) || []).filter(ts => now - ts < 60_000)
+  if (items.length >= 60) {
+    accountWriteRate.set(uid, items)
+    return false
+  }
+  items.push(now)
+  accountWriteRate.set(uid, items)
+  return true
+}
 
 function logEvent(kind, detail) {
   const stamp = new Date().toISOString()
@@ -460,6 +497,7 @@ async function createApp() {
       store: storeInfo,
       lexicon: lexiconStats,
       adminConfigured: !!ADMIN_PASSWORD,
+      loginConfigured: authConfigured(),
       ollamaBaseUrl: normalizeRemoteUrl(DEFAULT_OLLAMA_BASE_URL),
       ollamaModel: DEFAULT_OLLAMA_MODEL
     })
@@ -538,6 +576,58 @@ async function createApp() {
       sendError(res, 500, "Failed to save progress")
     }
   })
+
+  // ---- Akun pengguna (Firebase Auth) - menyimpan progres per akun ----
+  app.get("/api/account/progress", requireUser(), async (req, res) => {
+    try {
+      const account = await store.getAccount(req.user.uid)
+      res.set("Cache-Control", "private, no-store")
+      res.json({ ok: true, uid: req.user.uid, account })
+    } catch (error) {
+      logEvent("account_get_error", error.message)
+      sendError(res, 500, "Failed to load account progress")
+    }
+  })
+
+  app.put("/api/account/progress", requireUser(), async (req, res) => {
+    try {
+      if (!allowAccountWrite(req.user.uid)) {
+        res.set("Retry-After", "60")
+        sendError(res, 429, "Terlalu banyak penyimpanan. Coba lagi sebentar.")
+        return
+      }
+      const patch = sanitizeAccountPatch(req.body)
+      const existing = await store.getAccount(req.user.uid)
+      const merged = mergeAccount(existing, patch)
+      const account = await store.saveAccount(req.user.uid, {
+        ...merged,
+        email: req.user.email
+      })
+      res.set("Cache-Control", "private, no-store")
+      res.json({ ok: true, uid: req.user.uid, updated_at: account.updated_at || Date.now() })
+    } catch (error) {
+      if (error.status) {
+        sendError(res, error.status, error.message)
+        return
+      }
+      logEvent("account_put_error", error.message)
+      sendError(res, 500, "Failed to save account progress")
+    }
+  })
+
+  const accountDeletion = createAccountDeletion({
+    tickets: deletionTickets,
+    verifyPassword,
+    verifyGoogleIdToken,
+    deleteAccount: uid => store.deleteAccount(uid),
+    deleteAuthUser,
+    allowAttempt: allowDeletionAttempt,
+    logEvent
+  })
+
+  app.post("/api/account/deletion-ticket", requireUser(), accountDeletion.requestTicket)
+
+  app.delete("/api/account", requireUser(), accountDeletion.deleteAccount)
 
   app.get("/ai/status", async (_req, res) => {
     const config = resolveOllamaConfig()
@@ -822,7 +912,11 @@ async function start() {
   })
 }
 
-start().catch(error => {
-  console.error(error)
-  process.exit(1)
-})
+if (require.main === module) {
+  start().catch(error => {
+    console.error(error)
+    process.exit(1)
+  })
+}
+
+module.exports = { createApp }

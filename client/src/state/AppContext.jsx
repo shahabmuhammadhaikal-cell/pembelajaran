@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react"
 import { AppContext } from "./context.js"
+import { useAuth } from "./AuthContext.jsx"
+import { useSync } from "./SyncContext.jsx"
+import { resetAccountSession } from "../lib/accountOwner.js"
+import { mergeAdultProgress } from "../lib/progressMerge.js"
+import { clearKidsStorage } from "../hooks/useKidsProgress.js"
 import { initialState, reducer } from "./store.js"
 import * as api from "../lib/api.js"
 import { buildLexicon, emptyLexicon, lexiconFromPayload, addEntryToLexicon } from "../lib/language.js"
@@ -22,6 +27,11 @@ export function AppProvider({ children }) {
   const lexiconRef = useRef(lexicon)
   const syncTimer = useRef(null)
   const lastSynced = useRef(0)
+  const { user } = useAuth()
+  const { session, queue: queueAccount } = useSync()
+  const appliedSession = useRef(0)
+  const progressRef = useRef(state.progress)
+  progressRef.current = state.progress
 
   // ---------- hydrasi dari localStorage ----------
   useEffect(() => {
@@ -108,6 +118,67 @@ export function AppProvider({ children }) {
     load()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // ---------- sinkronisasi per akun (login Firebase) ----------
+  const userId = user ? user.uid : ""
+
+  // Terapkan data akun begitu SyncProvider selesai mengambilnya (sekali per sesi).
+  useEffect(() => {
+    if (!session.ready || !session.version || appliedSession.current === session.version) return
+    appliedSession.current = session.version
+
+    const remote = session.account && session.account.adult
+
+    if (session.switched) {
+      // Akun berbeda di perangkat ini: buang progres lokal akun sebelumnya.
+      dispatch({
+        type: "REPLACE_PROGRESS",
+        progress:
+          remote && remote.progress && typeof remote.progress === "object"
+            ? rollDay(remote.progress)
+            : { ...initialState.progress, dayStamp: todayStamp() }
+      })
+      if (remote && remote.settings && typeof remote.settings === "object") {
+        dispatch({ type: "SET_SETTINGS", patch: remote.settings })
+      }
+      return
+    }
+
+    if (!remote) return
+    if (remote.settings && typeof remote.settings === "object") {
+      dispatch({ type: "SET_SETTINGS", patch: remote.settings })
+    }
+    if (!remote.progress || typeof remote.progress !== "object") return
+
+    // Reset data tamu sebelum login tidak boleh menghapus progres akun lama.
+    const localProgress = session.firstLogin ? { ...progressRef.current, resetAt: 0 } : progressRef.current
+    const merged = mergeAdultProgress(localProgress, remote.progress)
+    dispatch({ type: "REPLACE_PROGRESS", progress: rollDay(merged) })
+  }, [session])
+
+  // Keluar dari akun: lepaskan progres lokal milik akun itu.
+  const wasSignedIn = useRef(false)
+  useEffect(() => {
+    if (userId) {
+      wasSignedIn.current = true
+      return
+    }
+    if (!wasSignedIn.current) return
+    wasSignedIn.current = false
+    dispatch({
+      type: "REPLACE_PROGRESS",
+      progress: { ...initialState.progress, dayStamp: todayStamp() }
+    })
+    clearKidsStorage()
+    resetAccountSession()
+  }, [userId])
+
+  // Kirim perubahan progres dewasa ke akun (SyncProvider yang melakukan debounce).
+  // Tunggu sampai data akun diterapkan dulu agar progres lama tidak ikut terkirim.
+  useEffect(() => {
+    if (!session.ready || appliedSession.current !== session.version) return
+    queueAccount({ adult: { progress: state.progress, settings: state.settings } })
+  }, [session.ready, session.version, state.progress, state.settings, queueAccount])
 
   // ---------- status server ----------
   useEffect(() => {
@@ -304,9 +375,9 @@ export function AppProvider({ children }) {
     const key = srsKey(item)
     if (!key) return false
     const favorites = { ...state.progress.favorites }
-    const next = !favorites[key]
-    if (next) favorites[key] = 1
-    else delete favorites[key]
+    const next = Number(favorites[key]) <= 0
+    // Timestamp positif = favorit, negatif = tombstone penghapusan.
+    favorites[key] = next ? Date.now() : -Date.now()
     dispatch({ type: "SET_PROGRESS", patch: { favorites } })
     return next
   }, [state.progress.favorites])
@@ -332,7 +403,7 @@ export function AppProvider({ children }) {
   const resetProgress = useCallback(() => {
     dispatch({
       type: "REPLACE_PROGRESS",
-      progress: { ...initialState.progress, dayStamp: todayStamp() }
+      progress: { ...initialState.progress, dayStamp: todayStamp(), resetAt: Date.now() }
     })
     pushToast("Progres belajar direset", "warn")
   }, [pushToast])

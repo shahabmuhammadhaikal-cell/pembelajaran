@@ -29,10 +29,9 @@ function parseServiceAccount(env = process.env) {
   }
 }
 
-function createFirestoreStore({ env = process.env, rootDir, dataDir } = {}) {
-  // require bertahap supaya mode JSON tetap jalan bila firebase-admin belum terpasang.
+/** Inisialisasi firebase-admin sekali saja; dipakai store dan verifikasi login. */
+function ensureAdmin(env = process.env) {
   const admin = require("firebase-admin")
-
   if (!admin.apps.length) {
     const serviceAccount = parseServiceAccount(env)
     const config = serviceAccount
@@ -47,7 +46,11 @@ function createFirestoreStore({ env = process.env, rootDir, dataDir } = {}) {
         : { projectId: env.FIREBASE_PROJECT_ID || undefined }
     admin.initializeApp(config)
   }
+  return admin
+}
 
+function createFirestoreStore({ env = process.env, rootDir, dataDir } = {}) {
+  const admin = ensureAdmin(env)
   const db = admin.firestore()
   const cache = new Map()
 
@@ -56,6 +59,7 @@ function createFirestoreStore({ env = process.env, rootDir, dataDir } = {}) {
     entries: "entries",
     suggestions: "word_suggestions",
     progress: "progress",
+    users: "users",
     meta: "meta"
   }
 
@@ -160,6 +164,33 @@ function createFirestoreStore({ env = process.env, rootDir, dataDir } = {}) {
     return payload
   }
 
+  async function getAccount(uid) {
+    const key = String(uid || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 128)
+    if (!key) return null
+    const doc = await db.collection(COLLECTIONS.users).doc(key).get()
+    return doc.exists ? doc.data() : null
+  }
+
+  async function saveAccount(uid, patch) {
+    const key = String(uid || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 128)
+    if (!key) throw new Error("uid is required")
+    const data = { uid: key, updated_at: Date.now() }
+    if (patch && typeof patch === "object") {
+      if (patch.kids && typeof patch.kids === "object") data.kids = patch.kids
+      if (patch.adult && typeof patch.adult === "object") data.adult = patch.adult
+      if (patch.email) data.email = String(patch.email).slice(0, 200)
+    }
+    await db.collection(COLLECTIONS.users).doc(key).set(data, { merge: true })
+    return data
+  }
+
+  async function deleteAccount(uid) {
+    const key = String(uid || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 128)
+    if (!key) return false
+    await db.collection(COLLECTIONS.users).doc(key).delete()
+    return true
+  }
+
   function healthInfo() {
     return {
       storage: "firestore",
@@ -177,8 +208,11 @@ function createFirestoreStore({ env = process.env, rootDir, dataDir } = {}) {
     saveSuggestions,
     getProgress,
     saveProgress,
+    getAccount,
+    saveAccount,
+    deleteAccount,
     healthInfo
   }
 }
 
-module.exports = { createFirestoreStore, isFirestoreConfigured, parseServiceAccount }
+module.exports = { createFirestoreStore, isFirestoreConfigured, parseServiceAccount, ensureAdmin }

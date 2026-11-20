@@ -1,12 +1,13 @@
 import { useApp } from "../state/useApp.js"
-import { IconCards, IconChat, IconGrid, IconQuiz, IconTranslate } from "./Icons.jsx"
+import { IconCards, IconChat, IconGrid, IconKids, IconQuiz, IconTranslate } from "./Icons.jsx"
 
 const TABS = [
   { id: "dashboard", label: "Dasbor", key: "1", Icon: IconGrid },
-  { id: "cards", label: "Kartu", key: "2", Icon: IconCards },
-  { id: "quiz", label: "Kuis", key: "3", Icon: IconQuiz },
-  { id: "phrases", label: "Frasa", key: "4", Icon: IconChat },
-  { id: "translate", label: "Terjemah", key: "5", Icon: IconTranslate }
+  { id: "kids", label: "Anak", key: "2", Icon: IconKids },
+  { id: "cards", label: "Kartu", key: "3", Icon: IconCards },
+  { id: "quiz", label: "Kuis", key: "4", Icon: IconQuiz },
+  { id: "phrases", label: "Frasa", key: "5", Icon: IconChat },
+  { id: "translate", label: "Terjemah", key: "6", Icon: IconTranslate }
 ]
 
 export default function Tabs() {

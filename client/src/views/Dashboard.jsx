@@ -157,7 +157,7 @@ export default function Dashboard() {
                 <IconTarget size={14} /> Rekor {state.progress.bestDaily || 0} kartu/hari
               </span>
               <span className="chip">
-                <IconSparkles size={14} /> {state.progress.favorites ? Object.keys(state.progress.favorites).length : 0} favorit
+                <IconSparkles size={14} /> {Object.values(state.progress.favorites || {}).filter(value => Number(value) > 0).length} favorit
               </span>
             </div>
           </div>

@@ -74,7 +74,7 @@ export default function Phrases() {
       <div className="phrases-grid">
         {visible.map(item => {
           const key = srsKey(item)
-          const favorite = !!state.progress.favorites[key]
+          const favorite = Number(state.progress.favorites[key]) > 0
           return (
             <article className="phrase-card" key={key}>
               <div className="phrase-line">

@@ -1,9 +1,30 @@
 import { useApp } from "../state/useApp.js"
-import { IconBulb, IconMoon, IconSearch, IconSettings, IconSun } from "./Icons.jsx"
+import { useAuth } from "../state/AuthContext.jsx"
+import { useSync } from "../state/SyncContext.jsx"
+import { IconBulb, IconMoon, IconSearch, IconSettings, IconSun, IconUser } from "./Icons.jsx"
 
 export default function Header() {
   const { state, actions } = useApp()
+  const { user } = useAuth()
+  const { status: syncStatus, error: syncError, lastSaved, retry } = useSync()
   const { settings, catalog, ui } = state
+  const syncFailed = syncStatus === "offline" || syncStatus === "error"
+  const syncLabel = syncFailed
+    ? "Gagal"
+    : syncStatus === "loading"
+      ? "Menyambung…"
+      : syncStatus === "saving"
+        ? "Menyimpan…"
+        : "Tersimpan"
+  const syncTitle = syncFailed
+    ? syncError || "Perubahan belum tersimpan ke akun"
+    : syncStatus === "loading"
+      ? "Memuat progres dari akun"
+      : syncStatus === "saving"
+        ? "Perubahan sedang dikirim ke akun"
+        : lastSaved
+          ? `Tersimpan ke akun pukul ${new Date(lastSaved).toLocaleTimeString("id-ID")}`
+          : "Progres akun sudah tersimpan"
   const isDark = settings.theme !== "light"
 
   const toggleTheme = () => {
@@ -73,6 +94,33 @@ export default function Header() {
             title={isDark ? "Tema terang" : "Tema gelap"}
           >
             {isDark ? <IconSun /> : <IconMoon />}
+          </button>
+
+          {user ? (
+            <div
+              className={`sync-pill ${syncStatus}`}
+              role="status"
+              aria-live="polite"
+              title={syncTitle}
+            >
+              <span className="sync-dot" aria-hidden />
+              <span className="sync-label">{syncLabel}</span>
+              {syncFailed ? (
+                <button type="button" className="sync-retry" onClick={() => retry()}>
+                  Coba lagi
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+
+          <button
+            className={`icon-btn account-btn ${ui.accountOpen ? "active" : ""}`}
+            onClick={() => actions.setUi({ accountOpen: !ui.accountOpen })}
+            aria-label={user ? `Akun ${user.email || ""}` : "Masuk atau daftar"}
+            title={user ? user.email || "Akun" : "Masuk untuk menyimpan skor"}
+          >
+            <IconUser />
+            {user ? <span className="account-dot" aria-hidden /> : null}
           </button>
 
           <button

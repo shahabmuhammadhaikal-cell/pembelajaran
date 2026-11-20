@@ -7,9 +7,11 @@
   "scripts": {
     "dev": "node scripts/copy-data.mjs && vite",
     "build": "node scripts/copy-data.mjs && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node --test"
   },
   "dependencies": {
+    "firebase": "^13.3.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

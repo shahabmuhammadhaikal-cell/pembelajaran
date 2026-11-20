@@ -147,7 +147,7 @@ export function buildQuizChoices(items, target, count = 4) {
 }
 
 export function studyFilterMatch(item, entry, filter, favorites) {
-  if (filter === "favorites") return !!(favorites && favorites[srsKey(item)])
+  if (filter === "favorites") return Number(favorites && favorites[srsKey(item)]) > 0
   const data = Object.assign({}, DEFAULT_SRS, entry || {})
   if (filter === "hard") {
     const day = 24 * 60 * 60 * 1000
@@ -204,7 +204,7 @@ export function summarizeProgress(srsMap, favorites = {}) {
     attempts,
     correct,
     accuracy: attempts ? Math.round((correct / attempts) * 100) : 0,
-    favorites: Object.keys(favorites || {}).length
+    favorites: Object.values(favorites || {}).filter(value => Number(value) > 0).length
   }
 }
 

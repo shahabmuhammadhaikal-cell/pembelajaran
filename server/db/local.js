@@ -106,6 +106,51 @@ function createLocalStore({ rootDir, dataDir }) {
     return payload
   }
 
+  // --- Akun login (Firebase Auth) — fallback JSON saat development ---
+  function accountKey(uid) {
+    return String(uid || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 128)
+  }
+
+  async function readAccounts() {
+    try {
+      return JSON.parse(await fsp.readFile(path.join(dataDir, "accounts.json"), "utf8")) || {}
+    } catch {
+      return {}
+    }
+  }
+
+  async function getAccount(uid) {
+    const key = accountKey(uid)
+    if (!key) return null
+    const all = await readAccounts()
+    return all[key] || null
+  }
+
+  async function saveAccount(uid, patch = {}) {
+    const key = accountKey(uid)
+    if (!key) throw new Error("uid is required")
+    const all = await readAccounts()
+    const next = Object.assign({ uid: key }, all[key] || {}, { updated_at: Date.now() })
+    if (patch.kids && typeof patch.kids === "object") next.kids = patch.kids
+    if (patch.adult && typeof patch.adult === "object") next.adult = patch.adult
+    if (patch.email) next.email = String(patch.email).slice(0, 200)
+    all[key] = next
+    await fsp.writeFile(path.join(dataDir, "accounts.json"), JSON.stringify(all, null, 2), "utf8")
+    cache.clear()
+    return next
+  }
+
+  async function deleteAccount(uid) {
+    const key = accountKey(uid)
+    if (!key) return false
+    const all = await readAccounts()
+    if (!all[key]) return false
+    delete all[key]
+    await fsp.writeFile(path.join(dataDir, "accounts.json"), JSON.stringify(all, null, 2), "utf8")
+    cache.clear()
+    return true
+  }
+
   function healthInfo() {
     return { storage: "json", dataDir, exists: fs.existsSync(dataDir) }
   }
@@ -119,6 +164,9 @@ function createLocalStore({ rootDir, dataDir }) {
     saveSuggestions,
     getProgress,
     saveProgress,
+    getAccount,
+    saveAccount,
+    deleteAccount,
     healthInfo
   }
 }

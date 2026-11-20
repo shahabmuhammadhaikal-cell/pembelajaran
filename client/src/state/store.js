@@ -21,6 +21,7 @@ export const initialState = {
     quizErrors: [],
     translateHistory: [],
     customEntries: [],
+    resetAt: 0,
     dayStamp: todayStamp(),
     completedToday: 0,
     streak: 0,
@@ -35,7 +36,8 @@ export const initialState = {
     studyFilter: "all",
     phrasesPage: 0,
     settingsOpen: false,
-    suggestionsOpen: false
+    suggestionsOpen: false,
+    accountOpen: false
   },
   lexicon: { loaded: false, loading: false, error: null, stats: null },
   server: { checked: false, ok: null, storage: "", version: 0 },

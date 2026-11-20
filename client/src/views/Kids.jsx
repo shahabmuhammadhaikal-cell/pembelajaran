@@ -1,0 +1,756 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import {
+  KID_TOPICS,
+  TOPIC_MAP,
+  KID_STICKERS,
+  KID_STAR_MILESTONES,
+  levelProgress
+} from "../lib/kidsData.js"
+import { KID_STORIES, STORY_MAP } from "../lib/kidsStories.js"
+import { useKidsProgress } from "../hooks/useKidsProgress.js"
+import { PROFILE_LIMIT } from "../lib/kidsMerge.js"
+import { localDayKey } from "../lib/dates.js"
+import { useAuth } from "../state/AuthContext.jsx"
+import { useSync } from "../state/SyncContext.jsx"
+import { useApp } from "../state/useApp.js"
+import { kidSay, playSfx, stopKidsAudio, unlockKidsAudio } from "../lib/kidsAudio.js"
+import Celebration from "../components/kids/Celebration.jsx"
+import LearnMode from "./kids/LearnMode.jsx"
+import ListenGame from "./kids/ListenGame.jsx"
+import GuessGame from "./kids/GuessGame.jsx"
+import SpellGame from "./kids/SpellGame.jsx"
+import MatchGame from "./kids/MatchGame.jsx"
+import StoryMode from "./kids/StoryMode.jsx"
+import CountGame from "./kids/CountGame.jsx"
+
+const LANGUAGES = [
+  { id: "id", label: "Indonesia", flag: "🇮🇩" },
+  { id: "en", label: "English", flag: "🇬🇧" },
+  { id: "ar", label: "العربية", flag: "🕌" }
+]
+
+const GAMES = [
+  { id: "listen", emoji: "🎧", name: "Dengar & Pilih", desc: "Dengarkan suara, pilih gambarnya", color: "#4f8cff" },
+  { id: "guess", emoji: "🔍", name: "Tebak Kata", desc: "Lihat gambar, pilih tulisannya", color: "#ffab3d" },
+  { id: "spell", emoji: "✏️", name: "Susun Kata", desc: "Susun huruf jadi kata Inggris", color: "#a06bff" },
+  { id: "match", emoji: "🧩", name: "Cocokkan Kartu", desc: "Temukan pasangan yang sama", color: "#ff7aa2" },
+  { id: "count", emoji: "🔢", name: "Hitung Yuk", desc: "Hitung gambar, pilih angkanya", color: "#39c98c" }
+]
+
+const ACTIVITY_GOAL = 3
+
+function bestLabel(game, best) {
+  const value = best[game.id] || 0
+  if (!value) return "belum dicoba"
+  if (game.id === "match") return "sudah selesai ✅"
+  return `rekor ${value}`
+}
+
+/** Mode Anak: belajar bergambar dengan suara + lima permainan + stiker + level. */
+export default function Kids() {
+  const {
+    kids,
+    kidsDoc,
+    profiles,
+    activeProfileId,
+    addProfile,
+    switchProfile,
+    renameProfile,
+    addStars,
+    unlockSticker,
+    markLearned,
+    finishTopic,
+    readStory,
+    recordBest,
+    setSetting,
+    setLastTopic,
+    hydrate,
+    replace,
+    logActivity,
+    claimDaily,
+    reset
+  } = useKidsProgress()
+
+  const [screen, setScreen] = useState({ name: "home" })
+  const [celebration, setCelebration] = useState(null)
+  const [confirmReset, setConfirmReset] = useState(false)
+  const [gain, setGain] = useState(null)
+
+  const { user, configured: loginReady } = useAuth()
+  const { queue: queueAccount, session } = useSync()
+  const { actions: appActions } = useApp()
+  const userId = user ? user.uid : ""
+  const appliedSession = useRef(0)
+
+  const settings = kids.settings
+  const stars = kids.stars || 0
+  const levelInfo = levelProgress(stars)
+  const today = localDayKey()
+  const daily =
+    kids.daily && kids.daily.day === today
+      ? kids.daily
+      : { day: today, activities: 0, goal: kids.daily?.goal || ACTIVITY_GOAL, claimed: 0 }
+  const goal = daily.goal || ACTIVITY_GOAL
+  const activities = daily.activities || 0
+  const missionDone = activities >= goal
+  const streak = kids.streak && kids.streak.count ? kids.streak.count : 0
+
+  useEffect(() => {
+    if (!confirmReset) return undefined
+    const timer = setTimeout(() => setConfirmReset(false), 4000)
+    return () => clearTimeout(timer)
+  }, [confirmReset])
+
+  // Hentikan suara saat berpindah layar.
+  useEffect(() => {
+    return () => stopKidsAudio()
+  }, [screen.name, screen.topicId])
+
+  // Mulai tiap layar dari atas agar judul tidak tertutup header lengket.
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }, [screen.name, screen.topicId])
+
+  // Animasi "+N ⭐" saat bintang bertambah.
+  const previousStars = useRef(stars)
+  useEffect(() => {
+    const diff = stars - previousStars.current
+    previousStars.current = stars
+    if (diff <= 0) return undefined
+    const key = Date.now()
+    setGain({ amount: diff, key })
+    const timer = setTimeout(() => setGain(null), 1500)
+    return () => clearTimeout(timer)
+  }, [stars])
+
+  // Terapkan progres anak dari akun. Progres lokal hanya digabung ke akun yang sama.
+  useEffect(() => {
+    if (!session.ready || !session.version || appliedSession.current === session.version) return
+    appliedSession.current = session.version
+    const remote = session.account && session.account.kids
+    if (session.switched) {
+      // Akun berbeda di perangkat ini: progres akun sebelumnya tidak dibawa.
+      replace(remote && typeof remote === "object" ? remote : null)
+    } else if (remote) {
+      // Semua profil digabung; profil yang di-reset lebih baru menang.
+      // Reset yang dilakukan sebelum akun pertama kali terhubung tidak menghapus akun.
+      hydrate(remote, { firstLogin: session.firstLogin })
+    }
+  }, [session, hydrate, replace])
+
+  // Keluar dari akun: buang progres anak milik akun itu dari perangkat.
+  const wasSignedIn = useRef(false)
+  useEffect(() => {
+    if (userId) {
+      wasSignedIn.current = true
+      return
+    }
+    if (!wasSignedIn.current) return
+    wasSignedIn.current = false
+    replace(null)
+  }, [userId, replace])
+
+  // Kirim perubahan progres anak ke akun, setelah data akun diterapkan.
+  useEffect(() => {
+    if (!session.ready || appliedSession.current !== session.version) return
+    queueAccount({ kids: kidsDoc })
+  }, [kidsDoc, session.ready, session.version, queueAccount])
+
+  const showWin = useCallback(payload => {
+    playSfx("win")
+    setCelebration({ ...payload, stamp: Date.now() })
+  }, [])
+
+  const award = useCallback(
+    amount => {
+      const value = Math.max(0, Math.round(Number(amount) || 0))
+      if (!value) return { milestone: null, levelUp: null }
+      const before = kids.stars || 0
+      addStars(value)
+      const crossed = KID_STAR_MILESTONES.filter(
+        milestone => before < milestone.stars && before + value >= milestone.stars
+      )
+      crossed.forEach(milestone => unlockSticker(milestone.id))
+      const beforeLevel = levelProgress(before).current
+      const afterLevel = levelProgress(before + value).current
+      return {
+        milestone: crossed.length ? crossed[crossed.length - 1] : null,
+        levelUp: afterLevel.level > beforeLevel.level ? afterLevel : null
+      }
+    },
+    [kids.stars, addStars, unlockSticker]
+  )
+
+  const handleStar = useCallback(() => {
+    award(1)
+  }, [award])
+
+  const handleGameWin = useCallback(
+    payload => {
+      if (payload.gameId) recordBest(payload.gameId, payload.score || 0)
+      if (payload.stickerId) unlockSticker(payload.stickerId)
+      const { milestone, levelUp } = award(payload.stars || 0)
+      logActivity()
+      showWin({
+        title: levelUp ? `Naik level! ${levelUp.avatar}` : payload.title,
+        subtitle: levelUp
+          ? `Kamu sekarang ${levelUp.title}. Terus semangat belajar ya!`
+          : payload.subtitle,
+        stickerId: payload.stickerId || (milestone ? milestone.id : null),
+        emoji: levelUp ? levelUp.avatar : null,
+        stars: payload.stars || 0
+      })
+    },
+    [recordBest, unlockSticker, award, logActivity, showWin]
+  )
+
+  const handleTopicDone = useCallback(
+    topic => {
+      const firstTime = !kids.topicsDone[topic.id]
+      finishTopic(topic.id)
+      logActivity()
+      if (firstTime) {
+        const stickerId = `topic-${topic.id}`
+        unlockSticker(stickerId)
+        const { milestone, levelUp } = award(3)
+        showWin({
+          title: levelUp ? `Naik level! ${levelUp.avatar}` : `${topic.label} selesai!`,
+          subtitle: levelUp
+            ? `Kamu sekarang ${levelUp.title}. Topik ${topic.label} juga selesai!`
+            : "Kamu sudah mengenal semua kata di topik ini.",
+          stickerId: milestone ? milestone.id : stickerId,
+          emoji: levelUp ? levelUp.avatar : null,
+          stars: 3
+        })
+      } else {
+        award(1)
+        showWin({
+          title: "Belajar ulang itu hebat!",
+          subtitle: `Kamu mengulang topik ${topic.label}.`,
+          stars: 1
+        })
+      }
+    },
+    [kids.topicsDone, finishTopic, logActivity, unlockSticker, award, showWin]
+  )
+
+  const handleStoryDone = useCallback(
+    (story, result) => {
+      const firstTime = !kids.stories[story.id]
+      readStory(story.id)
+      logActivity()
+      if (firstTime) {
+        const stickerId = `story-${story.id}`
+        unlockSticker(stickerId)
+        const { milestone, levelUp } = award(4)
+        showWin({
+          title: levelUp ? `Naik level! ${levelUp.avatar}` : `Cerita ${story.title} selesai!`,
+          subtitle: `Kuis pemahaman: ${result.correct}/${result.total} benar.`,
+          stickerId: milestone ? milestone.id : stickerId,
+          emoji: levelUp ? levelUp.avatar : null,
+          stars: 4
+        })
+      } else {
+        award(1)
+        showWin({
+          title: "Baca ulang itu hebat!",
+          subtitle: `Kamu membaca lagi cerita ${story.title}.`,
+          stars: 1
+        })
+      }
+    },
+    [kids.stories, readStory, logActivity, unlockSticker, award, showWin]
+  )
+
+  const handleClaim = useCallback(() => {
+    if (daily.claimed || !missionDone) return
+    claimDaily()
+    const { milestone } = award(5)
+    showWin({
+      title: "Misi hari ini tuntas! 🎁",
+      subtitle: `Kamu menyelesaikan ${goal} aktivitas belajar hari ini.`,
+      stickerId: milestone ? milestone.id : null,
+      emoji: "🎁",
+      stars: 5
+    })
+  }, [daily, missionDone, claimDaily, award, showWin, goal])
+
+  const goHome = useCallback(() => {
+    stopKidsAudio()
+    setScreen({ name: "home" })
+  }, [])
+
+  const openTopic = useCallback(
+    topicId => {
+      unlockKidsAudio()
+      playSfx("pop")
+      setLastTopic(topicId)
+      setScreen({ name: "learn", topicId })
+    },
+    [setLastTopic]
+  )
+
+  const openGame = useCallback(gameId => {
+    unlockKidsAudio()
+    playSfx("pop")
+    setScreen({ name: gameId })
+  }, [])
+
+  const openStory = useCallback(storyId => {
+    unlockKidsAudio()
+    playSfx("pop")
+    setScreen({ name: "story", storyId })
+  }, [])
+
+  const toggleSound = useCallback(() => {
+    const next = !settings.sound
+    setSetting("sound", next)
+    if (next) {
+      unlockKidsAudio()
+      playSfx("pop")
+    } else {
+      stopKidsAudio()
+    }
+  }, [settings.sound, setSetting])
+
+  const handleAddProfile = useCallback(() => {
+    if (profiles.length >= PROFILE_LIMIT) return
+    const name = window.prompt("Nama anak baru (maksimal 40 huruf)?")
+    if (!name || !name.trim()) return
+    unlockKidsAudio()
+    playSfx("tap")
+    addProfile(name)
+  }, [addProfile, profiles.length])
+
+  const handleRenameProfile = useCallback(() => {
+    const current = profiles.find(profile => profile.id === activeProfileId)
+    if (!current) return
+    const name = window.prompt("Nama baru untuk profil ini?", current.name)
+    if (!name || !name.trim() || name.trim() === current.name) return
+    renameProfile(current.id, name)
+  }, [profiles, activeProfileId, renameProfile])
+
+  const handleReset = useCallback(() => {
+    if (!confirmReset) {
+      playSfx("tap")
+      setConfirmReset(true)
+      return
+    }
+    reset()
+    setConfirmReset(false)
+    setCelebration(null)
+    playSfx("pop")
+  }, [confirmReset, reset])
+
+  const resumeTopic = useMemo(
+    () =>
+      TOPIC_MAP[kids.lastTopic] ||
+      KID_TOPICS.find(topic => !kids.topicsDone[topic.id]) ||
+      KID_TOPICS[0],
+    [kids.lastTopic, kids.topicsDone]
+  )
+
+  const doneTopics = Object.keys(kids.topicsDone).length
+  const stickerCount = Object.keys(kids.stickers).length
+  const readCount = Object.keys(kids.stories).length
+
+  if (screen.name === "learn") {
+    const topic = TOPIC_MAP[screen.topicId] || KID_TOPICS[0]
+    return (
+      <div className="kids">
+        <div className="kid-deco" aria-hidden>
+          <span>☁️</span>
+          <span>🌈</span>
+          <span>⭐</span>
+          <span>🎈</span>
+        </div>
+        <LearnMode
+          topic={topic}
+          settings={settings}
+          onBack={goHome}
+          onSeen={markLearned}
+          onDone={() => handleTopicDone(topic)}
+        />
+        {celebration ? <Celebration data={celebration} onClose={() => setCelebration(null)} /> : null}
+      </div>
+    )
+  }
+
+  if (screen.name !== "home") {
+    return (
+      <div className="kids">
+        <div className="kid-deco" aria-hidden>
+          <span>☁️</span>
+          <span>🌈</span>
+          <span>⭐</span>
+          <span>🎈</span>
+        </div>
+        {screen.name === "story" ? (
+          <StoryMode
+            story={STORY_MAP[screen.storyId] || KID_STORIES[0]}
+            settings={settings}
+            onBack={goHome}
+            onFinish={result => handleStoryDone(STORY_MAP[screen.storyId] || KID_STORIES[0], result)}
+          />
+        ) : null}
+        {screen.name === "listen" ? (
+          <ListenGame settings={settings} onBack={goHome} onStar={handleStar} onWin={handleGameWin} />
+        ) : null}
+        {screen.name === "guess" ? (
+          <GuessGame settings={settings} onBack={goHome} onStar={handleStar} onWin={handleGameWin} />
+        ) : null}
+        {screen.name === "spell" ? (
+          <SpellGame settings={settings} onBack={goHome} onStar={handleStar} onWin={handleGameWin} />
+        ) : null}
+        {screen.name === "match" ? (
+          <MatchGame settings={settings} onBack={goHome} onStar={handleStar} onWin={handleGameWin} />
+        ) : null}
+        {screen.name === "count" ? (
+          <CountGame settings={settings} onBack={goHome} onStar={handleStar} onWin={handleGameWin} />
+        ) : null}
+        {celebration ? <Celebration data={celebration} onClose={() => setCelebration(null)} /> : null}
+      </div>
+    )
+  }
+
+  return (
+    <div className="kids">
+      <div className="kid-deco" aria-hidden>
+        <span>☁️</span>
+        <span>🌈</span>
+        <span>⭐</span>
+        <span>🎈</span>
+      </div>
+
+      <header className="kid-head">
+        <button
+          className="kid-mascot"
+          onClick={() => {
+            unlockKidsAudio()
+            playSfx("pop")
+            kidSay("Hai teman! Aku Burhan si burung hantu. Ayo belajar sambil bermain!", "id")
+          }}
+          aria-label="Dengarkan sapaan Burhan"
+        >
+          <span className="kid-mascot-emoji" aria-hidden>
+            🦉
+          </span>
+          <span className="kid-mascot-bubble">Hai, teman! 👋</span>
+        </button>
+
+        <div className="kid-hello">
+          <h2>Ayo belajar sambil bermain!</h2>
+          <p>
+            Dengarkan suaranya, tirukan, lalu mainkan permainannya. Kumpulkan bintang ⭐, naik level, dan
+            buka stiker rahasia! 🏅
+          </p>
+          <div className="kid-cta">
+            <button className="kid-btn kid-btn-primary kid-btn-lg" onClick={() => openTopic(resumeTopic.id)}>
+              {kids.lastTopic ? "Lanjutkan belajar 🚀" : "Mulai belajar 🚀"}
+            </button>
+            <button className="kid-btn kid-btn-ghost" onClick={() => openGame("listen")}>
+              Tebak suara 🎧
+            </button>
+          </div>
+
+          <div className="kid-level">
+            <span className="kid-level-avatar" aria-hidden>
+              {levelInfo.current.avatar}
+            </span>
+            <div className="kid-level-copy">
+              <span className="kid-level-title">
+                Level {levelInfo.current.level} · {levelInfo.current.title}
+              </span>
+              <span className="kid-level-bar">
+                <span style={{ width: `${levelInfo.percent}%` }} />
+              </span>
+              <span className="kid-level-hint">
+                {levelInfo.next
+                  ? `${levelInfo.next.min - stars} ⭐ lagi ke level ${levelInfo.next.level} (${levelInfo.next.avatar} ${levelInfo.next.title})`
+                  : "Level maksimal! Kamu luar biasa 🎉"}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="kid-stats">
+          <div className="kid-stat">
+            <span className="kid-stat-value">⭐ {stars}</span>
+            <span className="kid-stat-label">bintang</span>
+            {gain ? (
+              <span key={gain.key} className="kid-star-pop" aria-hidden>
+                +{gain.amount} ⭐
+              </span>
+            ) : null}
+          </div>
+          <div className="kid-stat">
+            <span className="kid-stat-value">🔥 {streak}</span>
+            <span className="kid-stat-label">hari beruntun</span>
+          </div>
+          <div className="kid-stat">
+            <span className="kid-stat-value">
+              {doneTopics}/{KID_TOPICS.length}
+            </span>
+            <span className="kid-stat-label">topik</span>
+          </div>
+        </div>
+      </header>
+
+      <div className="kid-tools kid-profiles">
+        <span className="kid-tools-label">Profil anak:</span>
+        {profiles.map(profile => (
+          <button
+            key={profile.id}
+            className={`kid-chip ${profile.id === activeProfileId ? "on" : ""}`}
+            onClick={() => {
+              if (profile.id !== activeProfileId) {
+                previousStars.current = profile.stars
+                setGain(null)
+              }
+              unlockKidsAudio()
+              playSfx("tap")
+              switchProfile(profile.id)
+            }}
+            aria-pressed={profile.id === activeProfileId}
+            title={`${profile.stars} bintang`}
+          >
+            {profile.avatar} {profile.name}
+          </button>
+        ))}
+        {profiles.length < PROFILE_LIMIT ? (
+          <button className="kid-chip" onClick={handleAddProfile}>
+            ＋ Tambah anak
+          </button>
+        ) : null}
+        <button className="kid-chip" onClick={handleRenameProfile}>
+          ✏️ Ganti nama
+        </button>
+      </div>
+
+      <div className="kid-tools">
+        <span className="kid-tools-label">Bahasa kata:</span>
+        {LANGUAGES.map(language => (
+          <button
+            key={language.id}
+            className={`kid-chip ${settings.lang === language.id ? "on" : ""}`}
+            onClick={() => {
+              unlockKidsAudio()
+              playSfx("tap")
+              setSetting("lang", language.id)
+            }}
+            aria-pressed={settings.lang === language.id}
+          >
+            <span aria-hidden>{language.flag}</span> {language.label}
+          </button>
+        ))}
+        <span className="kid-tools-gap" />
+        <button
+          className={`kid-chip ${settings.slow ? "on" : ""}`}
+          onClick={() => {
+            playSfx("tap")
+            setSetting("slow", !settings.slow)
+          }}
+          aria-pressed={settings.slow}
+        >
+          🐢 Suara pelan
+        </button>
+        <button
+          className={`kid-chip ${settings.sound ? "on" : ""}`}
+          onClick={toggleSound}
+          aria-pressed={settings.sound}
+        >
+          {settings.sound ? "🔊 Suara nyala" : "🔇 Suara mati"}
+        </button>
+        {!user && loginReady ? (
+          <button className="kid-chip" onClick={() => appActions.setUi({ accountOpen: true })}>
+            ☁️ Masuk untuk simpan skor
+          </button>
+        ) : null}
+        <button className="kid-chip kid-chip-danger" onClick={handleReset}>
+          {confirmReset ? "Yakin? Ketuk lagi" : "🔄 Ulangi progres"}
+        </button>
+      </div>
+
+      <section className={`kid-mission ${missionDone ? "ready" : ""}`}>
+        <div className="kid-mission-head">
+          <span className="kid-mission-emoji" aria-hidden>
+            🎯
+          </span>
+          <div className="kid-mission-copy">
+            <h3>Misi hari ini</h3>
+            <p>Selesaikan {goal} aktivitas belajar (topik atau permainan).</p>
+          </div>
+          <span className="kid-mission-count">
+            {Math.min(activities, goal)}/{goal}
+          </span>
+        </div>
+        <div className="kid-mission-dots" aria-hidden>
+          {Array.from({ length: goal }, (_, index) => (
+            <span key={index} className={index < activities ? "on" : ""}>
+              ★
+            </span>
+          ))}
+        </div>
+        <div className="kid-mission-foot">
+          <span className="kid-mission-reward">Hadiah: 5 ⭐</span>
+          {daily.claimed ? (
+            <span className="kid-mission-claimed">✅ Hadiah sudah diambil</span>
+          ) : (
+            <button
+              className="kid-btn kid-btn-primary kid-btn-sm"
+              onClick={handleClaim}
+              disabled={!missionDone}
+            >
+              {missionDone ? "Klaim hadiah 🎁" : "Selesaikan misi dulu"}
+            </button>
+          )}
+        </div>
+      </section>
+
+      <section className="kid-section">
+        <div className="kid-section-head">
+          <h3>Mainkan dulu, yuk!</h3>
+          <span className="kid-section-sub">Lima permainan seru dengan suara</span>
+        </div>
+        <div className="kid-games">
+          {GAMES.map(game => (
+            <button
+              key={game.id}
+              className="kid-game-card"
+              style={{ "--kid-accent": game.color }}
+              onClick={() => openGame(game.id)}
+            >
+              <span className="kid-game-emoji" aria-hidden>
+                {game.emoji}
+              </span>
+              <span className="kid-game-body">
+                <span className="kid-game-name">{game.name}</span>
+                <span className="kid-game-desc">{game.desc}</span>
+                <span className="kid-game-best">{bestLabel(game, kids.best)}</span>
+              </span>
+              <span className="kid-game-arrow" aria-hidden>
+                ▶
+              </span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="kid-section">
+        <div className="kid-section-head">
+          <h3>Cerita bergambar</h3>
+          <span className="kid-section-sub">
+            {readCount}/{KID_STORIES.length} cerita dibaca · bertutur 3 bahasa
+          </span>
+        </div>
+        <div className="kid-stories">
+          {KID_STORIES.map(story => {
+            const wasRead = !!kids.stories[story.id]
+            return (
+              <button
+                key={story.id}
+                className={`kid-story-tile ${wasRead ? "done" : ""}`}
+                style={{ "--kid-accent": story.color }}
+                onClick={() => openStory(story.id)}
+              >
+                <span className="kid-story-cover" aria-hidden>
+                  {story.cover.map((emoji, position) => (
+                    <span key={position}>{emoji}</span>
+                  ))}
+                </span>
+                <span className="kid-story-body">
+                  <span className="kid-story-title">
+                    {story.title}
+                    {wasRead ? <span className="kid-topic-done"> ✓</span> : null}
+                  </span>
+                  <span className="kid-story-meta">
+                    {story.level} · {story.sentences.length} kalimat
+                  </span>
+                </span>
+                <span className="kid-game-arrow" aria-hidden>
+                  ▶
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      </section>
+
+      <section className="kid-section">
+        <div className="kid-section-head">
+          <h3>Pilih topik belajar</h3>
+          <span className="kid-section-sub">{KID_TOPICS.length} topik bergambar</span>
+        </div>
+        <div className="kid-topics">
+          {KID_TOPICS.map(topic => {
+            const learned = topic.items.filter(entry => kids.learned[entry.key]).length
+            const percent = Math.round((learned / topic.items.length) * 100)
+            const finished = !!kids.topicsDone[topic.id]
+            return (
+              <button
+                key={topic.id}
+                className={`kid-topic ${finished ? "done" : ""}`}
+                style={{ "--kid-accent": topic.color }}
+                onClick={() => openTopic(topic.id)}
+              >
+                <span className="kid-topic-emoji" aria-hidden>
+                  {topic.emoji}
+                </span>
+                <span className="kid-topic-name">
+                  {topic.label}
+                  {finished ? (
+                    <span className="kid-topic-done" aria-label="selesai">
+                      {" "}
+                      ✓
+                    </span>
+                  ) : null}
+                </span>
+                <span className="kid-topic-blurb">{topic.blurb}</span>
+                <span className="kid-topic-bar">
+                  <span style={{ width: `${percent}%` }} />
+                </span>
+                <span className="kid-topic-meta">
+                  {learned}/{topic.items.length} kata
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      </section>
+
+      <section className="kid-section">
+        <div className="kid-section-head">
+          <h3>Album stiker</h3>
+          <span className="kid-section-sub">
+            {stickerCount} dari {KID_STICKERS.length} terbuka
+          </span>
+        </div>
+        <div className="kid-stickers">
+          {KID_STICKERS.map(sticker => {
+            const unlocked = !!kids.stickers[sticker.id]
+            return (
+              <div
+                key={sticker.id}
+                className={`kid-sticker ${unlocked ? "unlocked" : "locked"}`}
+                title={unlocked ? sticker.name : sticker.hint}
+              >
+                <span className="kid-sticker-emoji" aria-hidden>
+                  {unlocked ? sticker.emoji : "🔒"}
+                </span>
+                <span className="kid-sticker-name">{unlocked ? sticker.name : sticker.hint}</span>
+              </div>
+            )
+          })}
+        </div>
+      </section>
+
+      <p className="kid-tip">
+        💡 Tips untuk orang tua: dampingi anak 10–15 menit sehari. Setiap kata punya suara dalam bahasa
+        Indonesia, Inggris, dan Arab — ketuk kartu untuk mengulang suaranya.
+      </p>
+
+      {celebration ? <Celebration data={celebration} onClose={() => setCelebration(null)} /> : null}
+    </div>
+  )
+}
