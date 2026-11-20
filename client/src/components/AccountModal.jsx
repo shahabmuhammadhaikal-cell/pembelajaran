@@ -216,6 +216,7 @@ export default function AccountModal() {
     await signOutUser()
     resetAccountSession()
     setDiscardConfirm(false)
+    setMode("masuk")
   }
 
   const discardLogout = async () => {
@@ -225,6 +226,7 @@ export default function AccountModal() {
       resetAccountSession()
       clearLocalProgress()
       setDiscardConfirm(false)
+      setMode("masuk")
     } catch (errorValue) {
       fail(errorValue)
     }

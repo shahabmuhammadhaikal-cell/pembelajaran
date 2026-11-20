@@ -1,15 +1,17 @@
 # Blueprint Render untuk backend Express + Firestore.
 # Buka dashboard Render -> New -> Blueprint, lalu tunjuk file ini.
 #
-# Frontend React di-host di GitHub Pages (lihat .github/workflows/deploy-pages.yml).
-# Backend ini melayani /api/* dan juga bisa menyajikan client/dist bila di-build di Render.
+# Frontend React di-build di Render dan disajikan backend ini juga (satu URL),
+# jadi https://<service>.onrender.com/ langsung membuka aplikasi. Alternatif lain:
+# GitHub Pages (lihat .github/workflows/deploy-pages.yml) atau Firebase Hosting.
 
 services:
   - type: web
     name: pembelajaran-api
     runtime: node
     rootDir: server
-    buildCommand: npm install
+    # Build backend + frontend: dist React disajikan oleh server yang sama.
+    buildCommand: npm install && cd ../client && npm ci && npm run build
     startCommand: node index.js
     healthCheckPath: /api/health
     autoDeploy: true

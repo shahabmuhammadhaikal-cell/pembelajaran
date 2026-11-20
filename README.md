@@ -104,6 +104,40 @@ Karena Hosting tidak mem-proxy `/api` ke server lain, build hosted wajib memakai
 
 Health check: `GET /api/health` — balik `{"ok":true,"storage":"firestore|json"}`.
 
+**Frontend ikut di server Render (satu URL).** [render.yaml](render.yaml) memakai build command
+`npm install && cd ../client && npm ci && npm run build`, lalu Express menyajikan `client/dist`,
+jadi `https://pembelajaran-api.onrender.com/` langsung membuka aplikasi dan semua panggilan
+`/api`, `/tts`, `/ai` tetap same-origin. Kalau service dibuat manual (bukan Blueprint), set
+**Build Command** di Render → Settings persis seperti di atas, lalu **Manual Deploy**; tanpa itu
+halaman root akan 404 "Frontend belum di-build".
+
+Build React di Render memakai `client/.env.production` (`VITE_API_BASE` absolut). Untuk pemakaian
+same-origin, kosongkan nilai itu (`VITE_API_BASE=`) agar aplikasi memanggil backend dari origin
+halaman, dan tetap isi `apiBase`/Authorized domains hanya bila memakai Hosting/Pages terpisah.
+
+### 2b. Backend di host container gratis
+
+[Dockerfile](Dockerfile) di root membangun React + Express dalam satu image (port `8080`), jadi
+cocok untuk host gratis berbasis container:
+
+```bash
+docker build -t pembelajaran .
+docker run -p 8080:8080 -e STORAGE=firestore -e FIREBASE_SERVICE_ACCOUNT='{...}' pembelajaran
+```
+
+Langkah di host (contoh **Northflank Sandbox** — gratis, 2 service selalu aktif tanpa tidur):
+
+1. New Service → Dockerfile → repo ini, konteks build root, Dockerfile `Dockerfile`.
+2. Port publik `8080` (HTTP), health check `/api/health`.
+3. Tambahkan env yang sama seperti Render: `FIREBASE_SERVICE_ACCOUNT`, `FIREBASE_WEB_API_KEY`,
+   `GOOGLE_OAUTH_CLIENT_ID`, `STORAGE=firestore`, `CORS_ORIGINS`.
+4. Deploy; host memberi domain HTTPS. Masukkan domain itu ke Firebase Authentication →
+   Authorized domains bila ingin login Google.
+
+Alternatif lain: Render free (tidur setelah 15 menit idle, tanpa kartu), Koyeb/Railway (butuh
+kartu), Zeabur. Untuk penyimpanan: `STORAGE=json` menulis ke disk container yang hilang saat
+restart, jadi di host gratis pakai Firestore.
+
 ### 3. Firebase Firestore (database sementara)
 
 Backend memakai Firestore bila kredensial ada, otomatis fallback ke JSON lokal bila tidak.
