@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { kidSay, playSfx } from "../../lib/kidsAudio.js"
+import { hasVoiceFor, kidSay, kidSpeech, playSfx } from "../../lib/kidsAudio.js"
 import ShapeGlyph, { shapeColor } from "../../components/kids/ShapeGlyph.jsx"
 
 const LANG_LABEL = { en: "Inggris", ar: "Arab", id: "Indonesia" }
@@ -44,6 +44,15 @@ export default function LearnMode({ topic, settings, onBack, onSeen, onDone }) {
   const sound = settings.sound !== false
   const slow = settings.slow === true
   const label = item[lang] || item.en || item.id || ""
+  const isLetter = topic.id === "hijaiyah"
+  const arabicVoice = hasVoiceFor("ar")
+
+  // Huruf hijaiyah dibacakan NAMA hurufnya. Bila perangkat tidak punya suara Arab,
+  // nama itu dibaca dari transliterasi latin (Alif, Ba, …) supaya tidak salah lafal.
+  const spoken =
+    isLetter && !(lang === "ar" && arabicVoice)
+      ? { text: item.en || item.tr || label, code: hasVoiceFor("id") ? "id" : "en" }
+      : { text: label, code: lang }
 
   useEffect(() => {
     setIndex(0)
@@ -63,12 +72,20 @@ export default function LearnMode({ topic, settings, onBack, onSeen, onDone }) {
     [sound, slow]
   )
 
+  const sayLang = useCallback(
+    key => {
+      const speech = kidSpeech({ text: item[key] || "", lang: key, latin: item.tr })
+      say(speech.text, speech.code)
+    },
+    [item, say]
+  )
+
   // Suara otomatis setiap kartu berganti.
   useEffect(() => {
     if (!sound) return undefined
-    const timer = setTimeout(() => kidSay(label, lang, { slow }), 300)
+    const timer = setTimeout(() => kidSay(spoken.text, spoken.code, { slow }), 300)
     return () => clearTimeout(timer)
-  }, [item.key, label, lang, sound, slow])
+  }, [item.key, spoken.text, spoken.code, sound, slow])
 
   const next = useCallback(() => {
     playSfx("tap")
@@ -91,13 +108,13 @@ export default function LearnMode({ topic, settings, onBack, onSeen, onDone }) {
         prev()
         event.preventDefault()
       } else if (event.key === " ") {
-        say(label, lang)
+        say(spoken.text, spoken.code)
         event.preventDefault()
       }
     }
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
-  }, [next, prev, say, label, lang])
+  }, [next, prev, say, spoken.text, spoken.code])
 
   const others = ["id", "en", "ar"].filter(key => key !== lang)
   const isLast = index === total - 1
@@ -134,20 +151,47 @@ export default function LearnMode({ topic, settings, onBack, onSeen, onDone }) {
 
         {item.sample ? (
           <div className="kid-card-sample">
-            Contoh: <b className={lang === "ar" ? "" : "arabic"}>{item.sample}</b>
-            {item.sampleId ? <span className="kid-card-sample-id"> · {item.sampleId}</span> : null}
+            <span className="kid-card-sample-title">
+              Contoh kata berawalan {item.big} — ketuk untuk mendengar
+            </span>
+            <div className="kid-sample-row">
+              {[
+                { code: "ar", text: item.sample, extra: item.sampleTr, arabic: true },
+                { code: "en", text: item.sampleEn },
+                { code: "id", text: item.sampleId }
+              ]
+                .filter(entry => entry.text)
+                .map(entry => {
+                  const speech = kidSpeech({ text: entry.text, lang: entry.code, latin: entry.extra })
+                  return (
+                    <button
+                      key={entry.code}
+                      className="kid-sample-btn"
+                      onClick={() => say(speech.text, speech.code)}
+                      aria-label={`Dengarkan contoh ${LANG_LABEL[entry.code]}: ${entry.text}`}
+                    >
+                      <span className={`kid-translation-tag kid-tag-${entry.code}`}>{entry.code.toUpperCase()}</span>
+                      <span className={`kid-sample-word ${entry.arabic ? "kid-word-ar" : ""}`}>{entry.text}</span>
+                      {entry.extra ? <span className="kid-sample-tr">{entry.extra}</span> : null}
+                      <span className="kid-sample-speaker" aria-hidden>
+                        🔊
+                      </span>
+                    </button>
+                  )
+                })}
+            </div>
           </div>
         ) : null}
 
         <div className="kid-say-row">
-          <button className="kid-say-btn" onClick={() => say(label, lang)} aria-label={`Dengarkan ${label}`}>
+          <button className="kid-say-btn" onClick={() => say(spoken.text, spoken.code)} aria-label={`Dengarkan ${label}`}>
             <span aria-hidden>🔊</span> Dengar
           </button>
           <button
             className="kid-say-btn kid-say-btn-ghost"
             onClick={() => {
               playSfx("pop")
-              kidSay(label, lang, { slow: true })
+              kidSay(spoken.text, spoken.code, { slow: true })
             }}
             aria-label={`Dengarkan ${label} dengan pelan`}
           >
@@ -160,7 +204,7 @@ export default function LearnMode({ topic, settings, onBack, onSeen, onDone }) {
             <button
               key={key}
               className="kid-translation"
-              onClick={() => say(item[key] || "", key)}
+              onClick={() => sayLang(key)}
               aria-label={`Dengarkan ${LANG_LABEL[key]}`}
             >
               <span className={`kid-translation-tag kid-tag-${key}`}>{key.toUpperCase()}</span>

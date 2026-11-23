@@ -119,6 +119,30 @@ export function kidSay(text, lang = "id", options = {}) {
   }
 }
 
+/**
+ * Apakah perangkat punya suara untuk bahasa ini?
+ * Dipakai agar nama huruf Arab tidak dibacakan suara bahasa lain (hasilnya kacau).
+ * @param {"id"|"en"|"ar"} lang
+ */
+export function hasVoiceFor(lang) {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return false
+  loadVoices()
+  return Boolean(pickVoice(lang))
+}
+
+/**
+ * Teks & bahasa yang benar-benar diucapkan.
+ * Teks Arab dibacakan apa adanya bila perangkat punya suara Arab; bila tidak,
+ * dibacakan transliterasinya (`latin`) dengan suara Indonesia/Inggris agar lafal tidak kacau.
+ * @param {{text: string, lang: "id"|"en"|"ar", latin?: string}} input
+ * @returns {{text: string, code: "id"|"en"|"ar"}}
+ */
+export function kidSpeech({ text, lang, latin = "" }) {
+  if (lang !== "ar") return { text, code: lang }
+  if (!latin || hasVoiceFor("ar")) return { text, code: "ar" }
+  return { text: latin, code: hasVoiceFor("id") ? "id" : "en" }
+}
+
 export function stopKidsAudio() {
   if (typeof window === "undefined") return
   if ("speechSynthesis" in window) window.speechSynthesis.cancel()
