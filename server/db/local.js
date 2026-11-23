@@ -61,6 +61,31 @@ function createLocalStore({ rootDir, dataDir }) {
     return Array.isArray(items) ? items : []
   }
 
+  /**
+   * Ganti seluruh entri satu kategori (dipakai import manual dari admin).
+   * Hewan dan sayur punya file sendiri di luar `assets/data/categories`.
+   */
+  async function setCategoryEntries(categoryId, items, { manual = true } = {}) {
+    const safe = String(categoryId || "").replace(/[^a-z0-9_]+/gi, "")
+    if (!safe) throw new Error("categoryId is required")
+    const list = Array.isArray(items) ? items : []
+    const catalog = await loadCatalog()
+    const entry = (catalog.categories || []).find(category => category.id === safe)
+    if (!entry) throw new Error(`Kategori ${safe} belum ada di katalog`)
+
+    const filePath =
+      safe === "animals"
+        ? path.join(rootDir, "assets", "animals", "animals.json")
+        : safe === "vegetables"
+          ? path.join(rootDir, "assets", "vegetables", "vegetables.json")
+          : path.join(dataDir, "categories", `${safe}.json`)
+
+    await fsp.mkdir(path.dirname(filePath), { recursive: true })
+    await fsp.writeFile(filePath, JSON.stringify(list, null, 2), "utf8")
+    cache.clear()
+    return { category: safe, entries: list.length, manual: Boolean(manual) }
+  }
+
   async function getAllEntries() {
     const catalog = await loadCatalog()
     const out = []
@@ -184,6 +209,7 @@ function createLocalStore({ rootDir, dataDir }) {
     kind: "json",
     getCatalog,
     getEntries,
+    setCategoryEntries,
     getAllEntries,
     listSuggestions,
     saveSuggestions,

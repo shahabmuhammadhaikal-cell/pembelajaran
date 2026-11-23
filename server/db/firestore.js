@@ -10,7 +10,8 @@
  *   meta/catalog                 -> ringkasan kategori (dibuat oleh seed)
  */
 
-const { writeContent } = require("./seedContent")
+const { writeContent, chunkItems, CHUNK_MAX_BYTES } = require("./seedContent")
+const BATCH_LIMIT = 400
 
 function isFirestoreConfigured(env = process.env) {
   if (env.FIRESTORE_EMULATOR_HOST) return true
@@ -241,6 +242,90 @@ function createFirestoreStore({ env = process.env, rootDir, dataDir } = {}) {
     return result
   }
 
+  /**
+   * Ganti seluruh entri satu kategori (dipakai import data manual dari admin),
+   * lalu selaraskan `categories/{id}` dan `meta/catalog`. Kategori yang diubah
+   * manual dicatat di `meta/seedState.manualCategories` supaya sinkronisasi
+   * berikutnya tidak menimpa hasil suntingan dengan data bawaan.
+   */
+  async function setCategoryEntries(categoryId, items, { manual = true } = {}) {
+    const safe = String(categoryId || "").replace(/[^a-z0-9_]+/gi, "")
+    if (!safe) throw new Error("categoryId is required")
+    const list = Array.isArray(items) ? items : []
+
+    const categoryRef = db.collection(COLLECTIONS.categories).doc(safe)
+    const categoryDoc = await categoryRef.get()
+    if (!categoryDoc.exists) throw new Error(`Kategori ${safe} belum ada di katalog Firestore`)
+
+    const entriesRef = db.collection(COLLECTIONS.entries)
+    const existing = await entriesRef.where("category", "==", safe).get()
+
+    let batch = db.batch()
+    let ops = 0
+    const flush = async () => {
+      if (!ops) return
+      await batch.commit()
+      batch = db.batch()
+      ops = 0
+    }
+
+    for (const doc of existing.docs) {
+      batch.delete(doc.ref)
+      if (++ops >= BATCH_LIMIT) await flush()
+    }
+
+    for (const [index, chunk] of chunkItems(list, CHUNK_MAX_BYTES).entries()) {
+      batch.set(entriesRef.doc(`${safe}__${String(index).padStart(3, "0")}`), {
+        category: safe,
+        index,
+        items: chunk
+      })
+      if (++ops >= BATCH_LIMIT) await flush()
+    }
+    await flush()
+
+    await categoryRef.set(
+      { id: safe, count: list.length, manual: Boolean(manual), updated_at: Date.now() },
+      { merge: true }
+    )
+
+    const seedStateRef = db.collection(COLLECTIONS.meta).doc("seedState")
+    const seedState = await getSeedState()
+    const manualCategories = new Set(
+      (seedState && Array.isArray(seedState.manualCategories) ? seedState.manualCategories : []).map(String)
+    )
+    if (manual) manualCategories.add(safe)
+    await seedStateRef.set(
+      { manualCategories: Array.from(manualCategories), updated_at: Date.now() },
+      { merge: true }
+    )
+
+    const catalogRef = db.collection(COLLECTIONS.meta).doc("catalog")
+    const catalogDoc = await catalogRef.get()
+    if (catalogDoc.exists) {
+      const catalog = catalogDoc.data()
+      const current = categoryDoc.data().name
+      const categories = (Array.isArray(catalog.categories) ? catalog.categories : []).map(item =>
+        item.id === safe ? { ...item, name: current || item.name, id: safe, count: list.length } : item
+      )
+      if (!categories.some(item => item.id === safe)) {
+        categories.push({ id: safe, name: current || safe, count: list.length })
+      }
+      await catalogRef.set(
+        {
+          categories,
+          total: categories.length,
+          entryCount: categories.reduce((sum, item) => sum + Number(item.count || 0), 0),
+          updated_at: Date.now()
+        },
+        { merge: true }
+      )
+    }
+
+    cache.clear()
+    return { category: safe, entries: list.length, chunks: chunkItems(list, CHUNK_MAX_BYTES).length }
+  }
+
   function healthInfo() {
     return {
       storage: "firestore",
@@ -258,6 +343,7 @@ function createFirestoreStore({ env = process.env, rootDir, dataDir } = {}) {
     saveSuggestions,
     getSeedState,
     seedContent,
+    setCategoryEntries,
     getProgress,
     saveProgress,
     getAccount,

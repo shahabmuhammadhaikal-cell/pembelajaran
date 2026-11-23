@@ -18,7 +18,7 @@ Default port: `8020`
 - `HOST`: host bind, default `0.0.0.0`
 - `API_BASE_URL`: base URL publik untuk respons seperti upload image
 - `STORAGE`: `json` memaksa store JSON lokal walau kredensial Firebase ada
-- `AUTO_SEED`: set `0` untuk mematikan pengisian Firestore otomatis saat katalog kosong (default aktif)
+- `AUTO_SEED`: set `0` untuk mematikan sinkronisasi materi otomatis ke Firestore (default aktif)
 - `CORS_ORIGINS`: daftar origin dipisah koma, default `*`
 - `ADMIN_USERNAME`: username login admin backend
 - `ADMIN_PASSWORD`: password login admin backend
@@ -45,8 +45,9 @@ Ollama di jaringan lokalnya, tetapi kunci API tidak pernah diterima dari klien.
 - `POST /ai/word-suggestion-draft`
 - `GET /tts`
 - `POST /upload`
-- `POST /import-animals`
-- `POST /import-vegetables`
+- `POST /import-animals` — gabungkan lalu simpan ke store aktif (Firestore bila aktif)
+- `POST /import-vegetables` — idem
+- `POST /admin/sync-content` — sinkronkan katalog/entri dari `assets/data` ke Firestore
 - `GET /word-suggestions`
 - `POST /word-suggestions`
 - `POST /word-suggestions-status`

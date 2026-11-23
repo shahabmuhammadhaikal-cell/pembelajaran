@@ -9,8 +9,8 @@
  * Opsional:
  *   node scripts/seed-firestore.js --dry-run   (hanya menampilkan ringkasan)
  *
- * Server juga mengisi Firestore otomatis saat start bila katalog masih kosong,
- * jadi skrip ini hanya diperlukan untuk seed manual/verifikasi.
+ * Server juga menyinkronkan Firestore otomatis saat start (katalog kosong atau
+ * isi assets/data berubah), jadi skrip ini hanya untuk seed manual/verifikasi.
  */
 const { loadLocalData, writeContent, chunkItems } = require("../db/seedContent")
 

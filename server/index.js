@@ -221,6 +221,8 @@ function normalizeImportedRecord(record) {
       ? record.synonyms_id.map(v => String(v || "").trim()).filter(Boolean)
       : String(record.synonyms_id || "").split(",").map(v => v.trim()).filter(Boolean)
   }
+  const tr = String(record.tr || "").trim()
+  if (tr) item.tr = tr
   return item.en || item.ar || item.id ? item : null
 }
 
@@ -240,17 +242,24 @@ function parseImportBuffer(buffer, filename) {
   return rows.map(normalizeImportedRecord).filter(Boolean)
 }
 
-async function mergeImportedData(filePath, importedItems) {
-  const existing = await readJsonFile(filePath, [])
+/**
+ * Gabungkan entri hasil import admin ke satu kategori lalu simpan lewat store,
+ * sehingga data manual ikut tersimpan di Firestore (bukan hanya JSON lokal).
+ */
+async function mergeImportedData(store, categoryId, importedItems) {
+  if (typeof store.setCategoryEntries !== "function") {
+    throw new Error("Store aktif tidak mendukung penyimpanan entri")
+  }
+  const existing = await store.getEntries(categoryId)
   const map = new Map()
   for (const item of Array.isArray(existing) ? existing : []) {
     const normalized = normalizeImportedRecord(item)
     if (!normalized) continue
-    map.set(buildEntryKey(normalized), normalized)
+    map.set(buildEntryKey(normalized), item)
   }
   for (const item of importedItems) map.set(buildEntryKey(item), item)
   const merged = Array.from(map.values())
-  await writeJsonFile(filePath, merged)
+  await store.setCategoryEntries(categoryId, merged, { manual: true })
   return { imported: importedItems.length, total: merged.length }
 }
 
@@ -397,8 +406,27 @@ async function createApp() {
     res.json({ ok: true })
   })
 
+  // Sinkronkan katalog + entri dari assets/data ke Firestore tanpa redeploy.
+  // Kategori hasil import manual tetap dipertahankan.
+  app.post("/admin/sync-content", requireAdmin, async (_req, res) => {
+    if (typeof store.syncLocalContent !== "function") {
+      sendError(res, 503, "Sinkronisasi materi hanya tersedia saat Firestore aktif")
+      return
+    }
+    try {
+      const result = await store.syncLocalContent()
+      lexiconCache.invalidate()
+      logEvent("content_sync_ok", JSON.stringify(result))
+      res.json({ ok: true, ...result, store: store.healthInfo() })
+    } catch (error) {
+      logEvent("content_sync_error", error.message)
+      sendError(res, 500, `Gagal menyinkronkan materi: ${error.message}`)
+    }
+  })
+
   app.get("/api/health", async (_req, res) => {
     const ai = resolveAiConfig()
+    const storeHealth = store.healthInfo()
     let lexiconStats = null
     try {
       const lexicon = await lexiconCache.get()
@@ -409,8 +437,8 @@ async function createApp() {
       service: "pembelajaran-backend",
       version: 2,
       port: PORT,
-      storage: storeInfo.storage,
-      store: storeInfo,
+      storage: storeHealth.storage,
+      store: storeHealth,
       lexicon: lexiconStats,
       adminConfigured: !!ADMIN_PASSWORD,
       loginConfigured: authConfigured(),
@@ -944,9 +972,10 @@ async function createApp() {
         return
       }
       const importedItems = parseImportBuffer(req.file.buffer, req.file.originalname)
-      const summary = await mergeImportedData(ANIMALS_PATH, importedItems)
-      logEvent("import_animals_ok", `count=${summary.imported} total=${summary.total}`)
-      res.json({ count: summary.imported, total: summary.total })
+      const summary = await mergeImportedData(store, "animals", importedItems)
+      lexiconCache.invalidate()
+      logEvent("import_animals_ok", `count=${summary.imported} total=${summary.total} storage=${storeHealth.storage}`)
+      res.json({ count: summary.imported, total: summary.total, storage: store.healthInfo().storage })
     } catch (error) {
       logEvent("import_animals_error", error.message)
       sendError(res, 400, "Failed to import animals data")
@@ -960,9 +989,10 @@ async function createApp() {
         return
       }
       const importedItems = parseImportBuffer(req.file.buffer, req.file.originalname)
-      const summary = await mergeImportedData(VEGETABLES_PATH, importedItems)
-      logEvent("import_vegetables_ok", `count=${summary.imported} total=${summary.total}`)
-      res.json({ count: summary.imported, total: summary.total })
+      const summary = await mergeImportedData(store, "vegetables", importedItems)
+      lexiconCache.invalidate()
+      logEvent("import_vegetables_ok", `count=${summary.imported} total=${summary.total} storage=${store.healthInfo().storage}`)
+      res.json({ count: summary.imported, total: summary.total, storage: store.healthInfo().storage })
     } catch (error) {
       logEvent("import_vegetables_error", error.message)
       sendError(res, 400, "Failed to import vegetables data")

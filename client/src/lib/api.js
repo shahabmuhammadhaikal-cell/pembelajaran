@@ -49,6 +49,21 @@ export function appUrl(path) {
   return `${base}${clean}`
 }
 
+/**
+ * Baca file statis lokal, dipakai saat API menjawab 200 tetapi isinya kosong
+ * (mis. Firestore belum ter-seed) agar aplikasi tidak tampil tanpa kategori.
+ */
+async function readStaticJson(path, isValid) {
+  try {
+    const res = await fetch(appUrl(path))
+    if (!res.ok) return null
+    const data = await res.json()
+    return isValid(data) ? data : null
+  } catch {
+    return null
+  }
+}
+
 async function parseJson(res) {
   const type = String(res.headers.get("content-type") || "")
   if (!type.includes("json")) throw new Error(`Unexpected response ${res.status}`)
@@ -97,16 +112,29 @@ export async function sendJson(method, path, body, extraHeaders) {
 
 // ---------- endpoint spesifik ----------
 
-export function fetchCatalog() {
-  return getJson("api/catalog", "data/catalog.json")
+const hasCategories = data => Boolean(data && Array.isArray(data.categories) && data.categories.length)
+const hasItems = data => {
+  if (Array.isArray(data)) return data.length > 0
+  return Boolean(data && Array.isArray(data.items) && data.items.length)
 }
 
-export function fetchEntries(categoryId) {
+export async function fetchCatalog() {
+  const data = await getJson("api/catalog", "data/catalog.json")
+  if (hasCategories(data)) return data
+  const fallback = await readStaticJson("data/catalog.json", hasCategories)
+  return fallback || data
+}
+
+export async function fetchEntries(categoryId) {
   const id = encodeURIComponent(categoryId)
-  if (categoryId === "animals" || categoryId === "vegetables") {
-    return getJson(`api/entries/${id}`, `data/${categoryId}.json`)
-  }
-  return getJson(`api/entries/${id}`, `data/categories/${id}.json`)
+  const fallback =
+    categoryId === "animals" || categoryId === "vegetables"
+      ? `data/${categoryId}.json`
+      : `data/categories/${id}.json`
+  const data = await getJson(`api/entries/${id}`, fallback)
+  if (hasItems(data)) return data
+  const staticData = await readStaticJson(fallback, hasItems)
+  return staticData || data
 }
 
 export function fetchLexicon() {

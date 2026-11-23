@@ -199,7 +199,14 @@ Backend memakai Firestore bila kredensial ada, otomatis fallback ke JSON lokal b
 
 1. Firebase Console → buat project → **Firestore Database** (mode Native).
 2. **Project settings → Service accounts → Generate new private key** → salin isi JSON-nya ke env `FIREBASE_SERVICE_ACCOUNT` di Render.
-3. Biarkan server mengisi Firestore sendiri. Saat start, bila Firestore aktif tetapi katalognya kosong, server menulis katalog, entri, dan saran kata dari `assets/data` ke Firestore memakai `FIREBASE_SERVICE_ACCOUNT` yang sudah ada, lalu menandai `meta/seedState`. Log startup menampilkan `[store] Firestore di-seed otomatis: 91 kategori, 12415 entri`. Seed hanya berjalan sekali; set `AUTO_SEED=0` bila ingin mematikannya.
+3. Biarkan server menyinkronkan materi sendiri. Saat start, server membandingkan sidik jari `assets/data` dengan `meta/seedState.localFingerprint` di Firestore, lalu menulis katalog, entri, dan saran kata memakai `FIREBASE_SERVICE_ACCOUNT` yang sudah ada. Log startup menampilkan `[store] materi tersinkron ke Firestore: 91 kategori, 12415 entri`. Bila data lokal tidak berubah, tidak ada penulisan ulang — jadi aman untuk setiap deploy. Set `AUTO_SEED=0` untuk mematikan seluruh penulisan otomatis.
+
+   Kategori yang datanya pernah diubah manual lewat import admin dicatat di `meta/seedState.manualCategories` dan **tidak** ditimpa data bawaan saat sinkronisasi berikutnya. Untuk memaksa sinkronisasi pada server yang sedang berjalan (tanpa redeploy):
+
+   ```bash
+   curl -X POST https://pembelajaran-api.onrender.com/admin/sync-content \
+     -H "x-admin-token: <token hasil /admin/login>"
+   ```
 
 Seed manual tetap tersedia (opsional — untuk verifikasi atau memaksa ulang dari mesin yang punya kredensial):
 
@@ -223,20 +230,25 @@ Yang perlu dilihat di respons:
 | `store.contentSource` | `firestore` | katalog dan entri dari Firestore (normal) |
 | `store.contentSource` | `assets-json` | Firestore terhubung tetapi katalog kosong — jalankan seed lalu restart |
 | `store.catalogSeeded` | `true` / `false` | ringkas dari `contentSource`; hanya muncul saat Firestore aktif |
-| `store.seededNow` | `true` | hanya muncul pada boot yang baru saja mengisi Firestore |
+| `store.seededNow` | `true` | hanya muncul pada boot yang baru saja menulis materi ke Firestore |
+| `store.localFingerprint` | hash | sidik jari `assets/data` yang terakhir disinkronkan |
+| `store.manualCategories` | array | kategori yang isinya diubah manual dan dipertahankan saat sinkronisasi |
+| `store.entryCount` | angka | total entri yang tercatat di `meta/catalog` |
+| `store.lastSyncAt` | timestamp | hanya ada setelah sinkronisasi manual lewat `/admin/sync-content` |
 | `store.warning` | teks | hanya ada saat fallback aktif; berisi perintah seed |
 
 Skema Firestore:
 
 | Collection | Isi |
 |---|---|
-| `categories/{id}` | `{ id, name, count, order }` |
+| `categories/{id}` | `{ id, name, count, order, manual? }` |
 | `entries/{cat}__{n}` | `{ category, index, items: [...] }` (chunk < 1MB) |
-| `meta/catalog` | ringkasan kategori untuk respon cepat |
+| `meta/catalog` | ringkasan kategori untuk respon cepat + `sourceFingerprint` |
+| `meta/seedState` | status sinkronisasi: `localFingerprint`, `manualCategories`, `status` |
 | `word_suggestions/{id}` | saran kata |
 | `progress/{deviceId}` | `{ payload, updated_at }` — progres belajar per perangkat |
 
-> **Deploy baru tampil kosong?** Cek `/api/health` lebih dulu, jangan menebak dari tampilan. Bila `storage` = `firestore` tetapi `store.contentSource` = `assets-json` (dan `store.catalogSeeded` = `false`), kredensial sudah benar tetapi katalog Firestore belum di-seed: aplikasi sengaja memakai `assets/data` agar tidak blank, sementara akun, progres, dan saran kata tetap disimpan di Firestore. Log startup juga menulis `store_ready: kind=firestore content=assets-json` beserta peringatan berisi perintah seed. Deploy/restart dengan build terbaru: auto-seed akan mengisi Firestore dari `assets/data`, dan `/api/health` berubah menjadi `store.contentSource: "firestore"` + `store.catalogSeeded: true` (sekali boot juga menampilkan `store.seededNow: true`). Bila auto-seed gagal, log server menyebut alasannya (kredensial/izin tulis) dan aplikasi sementara memakai `assets/data`.
+> **Deploy baru tampil kosong?** Cek `/api/health` lebih dulu, jangan menebak dari tampilan. Bila `storage` = `firestore` tetapi `store.contentSource` = `assets-json` (dan `store.catalogSeeded` = `false`), kredensial sudah benar tetapi katalog Firestore belum di-seed: aplikasi sengaja memakai `assets/data` agar tidak blank, sementara akun, progres, dan saran kata tetap disimpan di Firestore. Log startup juga menulis `store_ready: kind=firestore content=assets-json` beserta peringatan berisi perintah seed. Deploy/restart dengan build terbaru: sinkronisasi startup mengisi Firestore dari `assets/data`, dan `/api/health` berubah menjadi `store.contentSource: "firestore"` + `store.catalogSeeded: true` (boot yang menulis juga menampilkan `store.seededNow: true`). Bila sinkronisasi gagal, log server menyebut alasannya (kredensial/izin tulis) dan aplikasi sementara memakai `assets/data`.
 >
 > Tanpa kredensial Firebase sama sekali (`storage` = `json`), backend memakai JSON lokal dan tetap menyajikan seluruh kategori.
 
@@ -256,7 +268,8 @@ Skema Firestore:
 | `GET /ai/status` | status koneksi AI + daftar model |
 | `POST /ai/translate`, `/ai/word-suggestion-draft` | bantuan AI (Ollama / OpenAI-compatible) |
 | `POST /admin/login·logout·session` | sesi admin |
-| `POST /upload`, `/import-animals`, `/import-vegetables` | admin |
+| `POST /upload`, `/import-animals`, `/import-vegetables` | admin — data hasil import langsung disimpan ke store aktif (Firestore) |
+| `POST /admin/sync-content` | admin — sinkronkan ulang katalog/entri dari `assets/data` |
 
 ## Catatan
 

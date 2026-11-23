@@ -1,18 +1,31 @@
 const test = require("node:test")
 const assert = require("node:assert/strict")
+const fs = require("node:fs")
+const fsp = require("node:fs/promises")
+const os = require("node:os")
+const path = require("node:path")
+
+const { loadLocalData, contentFingerprint } = require("../db/seedContent")
+const { createLocalStore } = require("../db/local")
 
 const firestoreModulePath = require.resolve("../db/firestore")
 const indexModulePath = require.resolve("../db/index")
 
-/** Store Firestore tiruan: cukup untuk menguji pemilihan sumber materi dan auto-seed. */
-function fakeFirestore({ categories = [], seedError = null } = {}) {
-  const state = { categories: categories.slice(), seedAttempts: 0 }
+/** Store Firestore tiruan: cukup untuk menguji pemilihan sumber materi dan sinkronisasi. */
+function fakeFirestore({ categories = [], entryCount = 0, seedError = null, seedState = null } = {}) {
+  const state = { categories: categories.slice(), entryCount, seedAttempts: 0, lastOptions: null }
   const store = {
     kind: "firestore",
     fromFake: true,
     seedAttempts: () => state.seedAttempts,
+    seedOptions: () => state.lastOptions,
     async getCatalog() {
-      return { categories: state.categories, total: state.categories.length, fromFake: true }
+      return {
+        categories: state.categories,
+        total: state.categories.length,
+        entryCount: state.entryCount,
+        fromFake: true
+      }
     },
     async getEntries() {
       return [{ en: "fake" }]
@@ -21,12 +34,14 @@ function fakeFirestore({ categories = [], seedError = null } = {}) {
       return [{ en: "fake" }]
     },
     async getSeedState() {
-      return null
+      return seedState
     },
-    async seedContent(data) {
+    async seedContent(data, options) {
       state.seedAttempts++
+      state.lastOptions = options
       if (seedError) throw seedError
       state.categories = data.categories.map(category => ({ id: category.id }))
+      state.entryCount = data.allEntries.length
       return { categories: state.categories.length, entries: data.allEntries.length, chunks: 1 }
     },
     async getAccount(uid) {
@@ -132,8 +147,14 @@ test("AUTO_SEED=0 melewati auto-seed dan memakai materi assets", async () => {
   assert.equal(result.healthInfo().contentSource, "assets-json")
 })
 
-test("katalog Firestore terisi: materi tetap dari Firestore", async () => {
-  const store = fakeFirestore({ categories: [{ id: "hewan" }] })
+test("katalog Firestore terisi dan data lokal sama: tidak menulis ulang", async () => {
+  const local = await loadLocalData()
+  const fingerprint = contentFingerprint(local)
+  const store = fakeFirestore({
+    categories: local.categories.slice(),
+    entryCount: local.allEntries.length,
+    seedState: { status: "done", localFingerprint: fingerprint, categories: local.categories.length }
+  })
   const createStore = loadCreateStore(store)
   const result = await createStore({})
 
@@ -142,9 +163,57 @@ test("katalog Firestore terisi: materi tetap dari Firestore", async () => {
   const info = result.healthInfo()
   assert.equal(info.contentSource, "firestore")
   assert.equal(info.catalogSeeded, true)
-  assert.equal(info.catalogCategories, 1)
+  assert.equal(info.catalogCategories, local.categories.length)
   assert.equal(info.seededNow, undefined)
 
   const catalog = await result.getCatalog()
   assert.equal(catalog.fromFake, true)
+})
+
+test("data lokal berubah: kategori/entri baru ikut disinkronkan ke Firestore", async () => {
+  const local = await loadLocalData()
+  const store = fakeFirestore({
+    categories: [{ id: "greetings" }, { id: "animals" }],
+    seedState: {
+      status: "done",
+      localFingerprint: "fingerprint-lama",
+      categories: 2,
+      manualCategories: ["animals"]
+    }
+  })
+  const createStore = loadCreateStore(store)
+  const result = await createStore({})
+
+  assert.equal(store.seedAttempts(), 1)
+  assert.deepEqual(store.seedOptions().skipCategories, ["animals"])
+  assert.equal(store.seedOptions().fingerprint, contentFingerprint(local))
+
+  assert.equal(result.healthInfo().contentSource, "firestore")
+  assert.equal(result.healthInfo().catalogCategories, local.categories.length)
+  assert.deepEqual(result.healthInfo().manualCategories, ["animals"])
+})
+
+test("store lokal menyimpan entri hasil import manual ke file kategori", async () => {
+  const root = await fsp.mkdtemp(path.join(os.tmpdir(), "pembelajar-manual-"))
+  const dataDir = path.join(root, "assets", "data")
+  await fsp.mkdir(path.join(dataDir, "categories"), { recursive: true })
+  await fsp.writeFile(
+    path.join(dataDir, "catalog.json"),
+    JSON.stringify({ categories: [{ id: "animals", name: "Hewan" }] })
+  )
+  await fsp.mkdir(path.join(root, "assets", "animals"), { recursive: true })
+  await fsp.writeFile(path.join(root, "assets", "animals", "animals.json"), JSON.stringify([{ en: "Cat" }]))
+
+  try {
+    const store = createLocalStore({ rootDir: root, dataDir })
+    await store.setCategoryEntries("animals", [{ en: "Cat" }, { en: "Dog" }], { manual: true })
+
+    const saved = JSON.parse(
+      fs.readFileSync(path.join(root, "assets", "animals", "animals.json"), "utf8")
+    )
+    assert.equal(saved.length, 2)
+    assert.deepEqual(await store.getEntries("animals"), saved)
+  } finally {
+    await fsp.rm(root, { recursive: true, force: true })
+  }
 })

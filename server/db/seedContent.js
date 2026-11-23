@@ -3,11 +3,12 @@
  *
  * Dipakai dua tempat agar tidak ada logika ganda:
  *   - scripts/seed-firestore.js  (dijalankan manual dari mesin yang punya kredensial)
- *   - db/index.js                 (auto-seed saat startup bila katalog masih kosong)
+ *   - db/index.js                 (sinkronisasi startup: katalog kosong atau data lokal berubah)
  *
  * Semua penulisan memakai `set` pada dokumen yang sama, jadi aman diulang.
  */
 const path = require("path")
+const crypto = require("crypto")
 const fsp = require("fs/promises")
 
 const ROOT = path.resolve(__dirname, "..", "..")
@@ -67,10 +68,38 @@ async function loadLocalData({ rootDir = ROOT, dataDir = DATA_DIR } = {}) {
 }
 
 /**
+ * Sidik jari isi assets/ (kategori, entri, saran kata). Dipakai agar startup
+ * hanya menulis ulang Firestore ketika data lokal benar-benar berubah.
+ */
+function contentFingerprint({ categories = [], allEntries = [], suggestions = [] } = {}) {
+  const hash = crypto.createHash("sha1")
+  for (const category of categories) {
+    hash.update(`${category.id}:${category.name}:${category.count}\n`)
+  }
+  hash.update("--entries--\n")
+  for (const item of allEntries) {
+    hash.update(JSON.stringify(item))
+    hash.update("\n")
+  }
+  hash.update("--suggestions--\n")
+  hash.update(String(suggestions.length))
+  return hash.digest("hex").slice(0, 20)
+}
+
+/**
  * Tulis seluruh konten ke Firestore. Menandai `meta/seedState` sebagai "done"
  * di akhir agar startup berikutnya tidak mengulang penulisan.
+ *
+ * `skipCategories`: kategori yang isinya sudah diubah manual lewat admin
+ * (import) sehingga tidak boleh ditimpa oleh data bawaan.
  */
-async function writeContent(db, { categories, allEntries, suggestions }, { log = () => {} } = {}) {
+async function writeContent(
+  db,
+  { categories, allEntries, suggestions },
+  { log = () => {}, fingerprint = "", skipCategories = [] } = {}
+) {
+  const skip = new Set((skipCategories || []).map(String))
+  const writable = categories.filter(category => !skip.has(category.id))
   const seedState = db.collection("meta").doc("seedState")
   let batch = db.batch()
   let ops = 0
@@ -78,7 +107,7 @@ async function writeContent(db, { categories, allEntries, suggestions }, { log =
 
   try {
     // 1. categories
-    for (const category of categories) {
+    for (const category of writable) {
       batch.set(db.collection("categories").doc(category.id), {
         id: category.id,
         name: category.name,
@@ -93,7 +122,7 @@ async function writeContent(db, { categories, allEntries, suggestions }, { log =
     }
 
     // 2. entries (per kategori, di-chunk)
-    for (const category of categories) {
+    for (const category of writable) {
       const items = allEntries
         .filter(item => item.__category === category.id)
         .map(({ __category, ...rest }) => rest)
@@ -111,24 +140,48 @@ async function writeContent(db, { categories, allEntries, suggestions }, { log =
       }
     }
 
-    // 3. meta/catalog + penanda selesai, satu batch terakhir
+    // 3. meta/catalog + penanda selesai, satu batch terakhir.
+    // Kategori yang dilewati (hasil import manual) memakai jumlah entri yang
+    // sudah ada di Firestore agar ringkasan katalog tidak mengecil.
+    const existingCounts = new Map()
+    if (skip.size) {
+      const snapshot = await db.collection("meta").doc("catalog").get()
+      const existing = snapshot && snapshot.exists ? snapshot.data() : null
+      for (const item of (existing && existing.categories) || []) {
+        if (item && item.id) existingCounts.set(String(item.id), Number(item.count) || 0)
+      }
+    }
+    const catalogCategories = categories.map(category => ({
+      id: category.id,
+      name: category.name,
+      count: skip.has(category.id) && existingCounts.has(category.id) ? existingCounts.get(category.id) : category.count
+    }))
     batch.set(db.collection("meta").doc("catalog"), {
-      categories: categories.map(c => ({ id: c.id, name: c.name, count: c.count })),
-      total: categories.length,
-      entryCount: allEntries.length,
+      categories: catalogCategories,
+      total: catalogCategories.length,
+      entryCount: catalogCategories.reduce((sum, item) => sum + Number(item.count || 0), 0),
+      sourceFingerprint: fingerprint,
       seeded_at: Date.now()
     })
-    batch.set(seedState, {
-      status: "done",
-      categories: categories.length,
-      entries: allEntries.length,
-      chunks: chunkCount,
-      at: Date.now()
-    })
+    batch.set(
+      seedState,
+      {
+        status: "done",
+        categories: writable.length,
+        entries: allEntries.length,
+        chunks: chunkCount,
+        localFingerprint: fingerprint,
+        at: Date.now()
+      },
+      { merge: true }
+    )
     ops += 2
     if (ops > 0) await batch.commit()
 
-    log(`[seed] kategori ditulis: ${categories.length}, chunk entri: ${chunkCount}`)
+    log(
+      `[seed] kategori ditulis: ${writable.length}/${categories.length}` +
+        `${skip.size ? ` (dilewati: ${Array.from(skip).join(", ")})` : ""}, chunk entri: ${chunkCount}`
+    )
 
     // 4. saran kata (opsional, bila file ada)
     if (suggestions.length) {
@@ -156,4 +209,12 @@ async function writeContent(db, { categories, allEntries, suggestions }, { log =
   }
 }
 
-module.exports = { loadLocalData, writeContent, chunkItems, ROOT, DATA_DIR, CHUNK_MAX_BYTES }
+module.exports = {
+  loadLocalData,
+  writeContent,
+  contentFingerprint,
+  chunkItems,
+  ROOT,
+  DATA_DIR,
+  CHUNK_MAX_BYTES
+}
