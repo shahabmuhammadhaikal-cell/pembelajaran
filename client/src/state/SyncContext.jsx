@@ -16,6 +16,7 @@ const EMPTY_SESSION = {
   family: null,
   version: 0
 }
+const SESSION_EXPIRED = "Sesi login berakhir. Silakan masuk lagi."
 const SAVE_DEBOUNCE_MS = 2000
 const RETRY_GAP_MS = 15000
 const REFRESH_GAP_MS = 60000
@@ -52,9 +53,17 @@ export function SyncProvider({ children }) {
   const lastAttempt = useRef(0)
   const scheduleRef = useRef(null)
   const loadRef = useRef(() => {})
+  // Alasan terakhir gagal menyambung/menyimpan, agar pemanggil flushNow bisa
+  // menampilkan penyebab aslinya (mis. server akun belum dikonfigurasi).
+  const lastError = useRef("")
 
   uidRef.current = uid
   sessionRef.current = session
+
+  const noteError = useCallback(message => {
+    lastError.current = message
+    setError(message)
+  }, [])
 
   const flush = useCallback(async () => {
     // Tunggu pengiriman yang sedang berjalan supaya tidak ada perubahan yang hilang.
@@ -64,22 +73,28 @@ export function SyncProvider({ children }) {
       }
       if (sending.current) {
         scheduleRef.current()
-        return false
+        return { ok: false, error: "Penyimpanan sebelumnya belum selesai. Coba lagi sebentar." }
       }
     }
     const payload = pending.current
-    if (!payload) return true
-    if (!uidRef.current || !sessionRef.current.ready) return false
+    if (!payload) return { ok: true }
+    if (!uidRef.current) return { ok: false, error: SESSION_EXPIRED }
+    if (!sessionRef.current.ready) {
+      return {
+        ok: false,
+        error: lastError.current || "Belum tersambung ke server. Periksa koneksi lalu coba lagi."
+      }
+    }
     const runUid = uidRef.current
     pending.current = null
     sending.current = true
     setStatus("saving")
     try {
       const token = await currentIdToken()
-      if (!token) throw new Error("Sesi login berakhir. Silakan masuk lagi.")
+      if (!token) throw new Error(SESSION_EXPIRED)
       const saved = await saveAccountProgress(token, payload)
       // Akun berganti saat permintaan berjalan: jangan sentuh status sesi baru.
-      if (uidRef.current !== runUid) return true
+      if (uidRef.current !== runUid) return { ok: true }
       // Metadata akun (profil, role, statistik) ikut diperbarui tanpa menarik ulang
       // seluruh progres, supaya antrean yang belum terkirim tidak terganggu.
       setSession(previous =>
@@ -91,7 +106,7 @@ export function SyncProvider({ children }) {
             }
           : previous
       )
-      setError("")
+      noteError("")
       if (pending.current) {
         // Ada perubahan baru selama menyimpan: jangan bilang "Tersimpan" dulu.
         setStatus("saving")
@@ -100,20 +115,22 @@ export function SyncProvider({ children }) {
         setStatus("saved")
         setLastSaved(Date.now())
       }
-      return true
+      return { ok: true }
     } catch (err) {
-      if (uidRef.current !== runUid) return false
+      // Hasil ini milik akun sebelumnya, bukan akun yang sekarang terbuka.
+      if (uidRef.current !== runUid) return { ok: true }
       if (isAuthExpired(err)) signOutUser().catch(() => {})
       // Jangan buang perubahan: kembalikan ke antrean, dicoba lagi nanti.
       pending.current = { ...payload, ...(pending.current || {}) }
       setStatus("error")
-      setError(err && err.message ? err.message : "Gagal menyimpan ke akun")
-      return false
+      const message = err && err.message ? err.message : "Gagal menyimpan ke akun"
+      noteError(message)
+      return { ok: false, error: message }
     } finally {
       // Penggantian akun sudah mereset penanda ini; jangan ganggu kiriman akun baru.
       if (uidRef.current === runUid) sending.current = false
     }
-  }, [])
+  }, [noteError])
 
   const schedule = useCallback(() => {
     if (timer.current) clearTimeout(timer.current)
@@ -216,7 +233,7 @@ export function SyncProvider({ children }) {
     loading.current = false
     lastAttempt.current = 0
     setLastSaved(0)
-    setError("")
+    noteError("")
 
     if (!uid) {
       setSession(EMPTY_SESSION)
@@ -238,7 +255,7 @@ export function SyncProvider({ children }) {
       setStatus("loading")
       try {
         const token = await currentIdToken()
-        if (!token) throw new Error("Sesi login berakhir. Silakan masuk lagi.")
+        if (!token) throw new Error(SESSION_EXPIRED)
         const data = await fetchAccountProgress(token)
         if (!alive || uidRef.current !== uid) return
         markAccountSynced(uid)
@@ -266,7 +283,7 @@ export function SyncProvider({ children }) {
         if (isAuthExpired(err)) signOutUser().catch(() => {})
         setSession({ uid, ready: false, switched, firstLogin, account: null, stats: null, family: null, version: 0 })
         setStatus("offline")
-        setError(err && err.message ? err.message : "Tidak bisa menyambung ke server")
+        noteError(err && err.message ? err.message : "Tidak bisa menyambung ke server")
       } finally {
         loading.current = false
       }
@@ -281,7 +298,7 @@ export function SyncProvider({ children }) {
       timer.current = null
       loadRef.current = () => {}
     }
-  }, [uid])
+  }, [uid, noteError])
 
   const value = useMemo(
     () => ({ status, lastSaved, error, session, queue, flushNow: flush, retry, refresh }),

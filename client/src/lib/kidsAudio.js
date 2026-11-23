@@ -143,6 +143,17 @@ export function kidSpeech({ text, lang, latin = "" }) {
   return { text: latin, code: hasVoiceFor("id") ? "id" : "en" }
 }
 
+/**
+ * Bacakan teks dengan pelafalan yang tepat: teks Arab hanya diucapkan bila
+ * perangkat punya suara Arab, selain itu transliterasinya (lihat `kidSpeech`).
+ * @param {{text: string, lang: "id"|"en"|"ar", latin?: string}} input
+ * @param {{slow?: boolean, rate?: number}} options
+ */
+export function kidSaySpeech({ text, lang, latin = "" }, options = {}) {
+  const speech = kidSpeech({ text, lang, latin })
+  kidSay(speech.text, speech.code, options)
+}
+
 export function stopKidsAudio() {
   if (typeof window === "undefined") return
   if ("speechSynthesis" in window) window.speechSynthesis.cancel()

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { KID_PLAY_ITEMS } from "../../lib/kidsData.js"
-import { kidSay, playSfx } from "../../lib/kidsAudio.js"
+import { kidSaySpeech, playSfx } from "../../lib/kidsAudio.js"
 
 const PAIRS = 6
 
@@ -68,7 +68,7 @@ export default function MatchGame({ settings, onBack, onStar, onWin }) {
         setOpen([])
         playSfx("correct")
         onStar()
-        if (sound) kidSay(second.entry[lang], lang, { slow })
+        if (sound) kidSaySpeech({ text: second.entry[lang], lang, latin: second.entry.tr }, { slow })
         if (nextMatched.length === deck.length) setDone(true)
       } else {
         setLocked(true)

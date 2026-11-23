@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { KID_PLAY_ITEMS } from "../../lib/kidsData.js"
-import { kidSay, playSfx } from "../../lib/kidsAudio.js"
+import { kidSay, kidSaySpeech, kidSpeech, playSfx } from "../../lib/kidsAudio.js"
 
 const ROUNDS = 10
 const PRAISE = ["Hebat!", "Keren!", "Pintar!", "Luar biasa!", "Bagus sekali!"]
@@ -40,7 +40,10 @@ export default function ListenGame({ settings, onBack, onStar, onWin }) {
 
   useEffect(() => {
     if (!sound || done || !current) return undefined
-    const timer = setTimeout(() => kidSay(current.target[lang], lang, { slow }), 380)
+    const timer = setTimeout(
+      () => kidSaySpeech({ text: current.target[lang], lang, latin: current.target.tr }, { slow }),
+      380
+    )
     return () => clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [round, seed, lang, sound, slow, done])
@@ -57,7 +60,8 @@ export default function ListenGame({ settings, onBack, onStar, onWin }) {
         }
         if (sound) {
           const praise = PRAISE[Math.floor(Math.random() * PRAISE.length)]
-          kidSay(`${praise} ${current.target[lang]}`, lang, { slow })
+          const word = kidSpeech({ text: current.target[lang], lang, latin: current.target.tr })
+          kidSay(`${praise} ${word.text}`, word.code, { slow })
         }
       } else {
         playSfx("wrong")
@@ -164,7 +168,7 @@ export default function ListenGame({ settings, onBack, onStar, onWin }) {
           className="kid-speaker"
           onClick={() => {
             playSfx("pop")
-            kidSay(current.target[lang], lang, { slow })
+            kidSaySpeech({ text: current.target[lang], lang, latin: current.target.tr }, { slow })
           }}
           aria-label="Ulangi suara"
         >

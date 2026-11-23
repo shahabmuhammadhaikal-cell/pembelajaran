@@ -259,8 +259,8 @@ export default function AccountModal() {
     setProfileError("")
     try {
       queue({ profile: { leaderboard: !(profile && profile.leaderboard) } })
-      const ok = await flushNow()
-      if (!ok) throw new Error("Belum tersimpan. Periksa koneksi lalu coba lagi.")
+      const result = await flushNow()
+      if (!result.ok) throw new Error(result.error || "Belum tersimpan. Coba lagi.")
     } catch (errorValue) {
       setProfileError(errorValue && errorValue.message ? errorValue.message : "Gagal menyimpan")
     } finally {
@@ -330,8 +330,10 @@ export default function AccountModal() {
     setFormError("")
     setMessage("")
     const saved = await flushNow()
-    if (!saved) {
-      setFormError("Perubahan terakhir belum tersimpan. Kamu bisa mencoba lagi atau keluar tanpa menyimpannya.")
+    if (!saved.ok) {
+      setFormError(
+        `Perubahan terakhir belum tersimpan.${saved.error ? ` ${saved.error}` : ""} Kamu bisa mencoba lagi atau keluar tanpa menyimpannya.`
+      )
       setDiscardConfirm(true)
       return
     }

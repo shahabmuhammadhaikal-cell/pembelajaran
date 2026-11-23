@@ -1,9 +1,10 @@
 /**
  * Cerita bergambar untuk mode anak.
- * Satu cerita = beberapa kalimat (ID/EN/AR) + dua pertanyaan pemahaman.
+ * Satu cerita = beberapa kalimat (ID/EN/AR + transliterasi) + dua pertanyaan pemahaman.
+ * Transliterasi (`tr`) dipakai membacakan kalimat Arab bila perangkat tidak punya suara Arab.
  */
 
-const sentence = (emoji, id, en, ar) => ({ emoji, id, en, ar })
+const sentence = (emoji, id, en, ar, tr) => ({ emoji, id, en, ar, tr })
 
 export const KID_STORIES = [
   {
@@ -16,12 +17,12 @@ export const KID_STORIES = [
     color: "#ff7aa2",
     level: "Mudah",
     sentences: [
-      sentence("🐱", "Ini kucing kecil.", "This is a little cat.", "هَذَا قِطٌّ صَغِير."),
-      sentence("😺", "Namanya Milo.", "His name is Milo.", "اِسْمُهُ مِيلُو."),
-      sentence("🥛", "Milo suka susu.", "Milo likes milk.", "مِيلُو يُحِبُّ الْحَلِيب."),
-      sentence("⚽", "Milo juga suka bermain bola.", "Milo also likes to play with a ball.", "مِيلُو يُحِبُّ أَيْضًا اللَّعِبَ بِالْكُرَة."),
-      sentence("🛋️", "Milo tidur di sofa.", "Milo sleeps on the sofa.", "مِيلُو يَنَامُ عَلَى الْأَرِيكَة."),
-      sentence("😸", "Milo senang sekali.", "Milo is very happy.", "مِيلُو سَعِيدٌ جِدًّا.")
+      sentence("🐱", "Ini kucing kecil.", "This is a little cat.", "هَذَا قِطٌّ صَغِير.", "Hādhā qiṭṭun ṣaghīr"),
+      sentence("😺", "Namanya Milo.", "His name is Milo.", "اِسْمُهُ مِيلُو.", "Ismuhu Mīlū"),
+      sentence("🥛", "Milo suka susu.", "Milo likes milk.", "مِيلُو يُحِبُّ الْحَلِيب.", "Mīlū yuḥibbu al-ḥalīb"),
+      sentence("⚽", "Milo juga suka bermain bola.", "Milo also likes to play with a ball.", "مِيلُو يُحِبُّ أَيْضًا اللَّعِبَ بِالْكُرَة.", "Mīlū yuḥibbu aydan al-laʿiba bil-kura"),
+      sentence("🛋️", "Milo tidur di sofa.", "Milo sleeps on the sofa.", "مِيلُو يَنَامُ عَلَى الْأَرِيكَة.", "Mīlū yanāmu ʿalā al-arīka"),
+      sentence("😸", "Milo senang sekali.", "Milo is very happy.", "مِيلُو سَعِيدٌ جِدًّا.", "Mīlū saʿīdun jiddan")
     ],
     questions: [
       { q: "Siapa nama kucing itu?", options: ["Milo", "Tomi", "Bobi"], answer: 0 },
@@ -38,12 +39,12 @@ export const KID_STORIES = [
     color: "#ffab3d",
     level: "Mudah",
     sentences: [
-      sentence("👩‍👦", "Ibu dan Ali pergi ke pasar.", "Mother and Ali go to the market.", "ذَهَبَتْ أُمِّي وَعَلِيٌّ إِلَى السُّوق."),
-      sentence("🏪", "Pasar itu ramai sekali.", "The market is very busy.", "السُّوقُ مُزْدَحِمٌ جِدًّا."),
-      sentence("🍎", "Mereka membeli apel merah.", "They buy red apples.", "اِشْتَرَيَا تُفَّاحًا أَحْمَر."),
-      sentence("🍌", "Ali membeli pisang.", "Ali buys bananas.", "عَلِيٌّ اِشْتَرَى مَوْزًا."),
-      sentence("🥬", "Ibu membeli sayur hijau.", "Mother buys green vegetables.", "أُمِّي اِشْتَرَتْ خُضَارًا خَضْرَاء."),
-      sentence("😄", "Mereka pulang dengan gembira.", "They go home happily.", "عَادَا فَرِحَيْن.")
+      sentence("👩‍👦", "Ibu dan Ali pergi ke pasar.", "Mother and Ali go to the market.", "ذَهَبَتْ أُمِّي وَعَلِيٌّ إِلَى السُّوق.", "Dhahabat ummī wa-ʿAliyyun ilā as-sūq"),
+      sentence("🏪", "Pasar itu ramai sekali.", "The market is very busy.", "السُّوقُ مُزْدَحِمٌ جِدًّا.", "As-sūqu muzdaḥimun jiddan"),
+      sentence("🍎", "Mereka membeli apel merah.", "They buy red apples.", "اِشْتَرَيَا تُفَّاحًا أَحْمَر.", "Ishtarayā tuffāḥan aḥmar"),
+      sentence("🍌", "Ali membeli pisang.", "Ali buys bananas.", "عَلِيٌّ اِشْتَرَى مَوْزًا.", "ʿAliyyun ishtarā mawzan"),
+      sentence("🥬", "Ibu membeli sayur hijau.", "Mother buys green vegetables.", "أُمِّي اِشْتَرَتْ خُضَارًا خَضْرَاء.", "Ummī ishtarat khuḍāran khaḍrāʾ"),
+      sentence("😄", "Mereka pulang dengan gembira.", "They go home happily.", "عَادَا فَرِحَيْن.", "ʿĀdā fariḥayn")
     ],
     questions: [
       { q: "Ke mana Ibu dan Ali pergi?", options: ["Pasar", "Sekolah", "Pantai"], answer: 0 },
@@ -60,12 +61,12 @@ export const KID_STORIES = [
     color: "#4f8cff",
     level: "Mudah",
     sentences: [
-      sentence("👨‍👩‍👧", "Ini keluargaku.", "This is my family.", "هَذِهِ عَائِلَتِي."),
-      sentence("👨", "Ayahku tinggi.", "My father is tall.", "أَبِي طَوِيل."),
-      sentence("👩", "Ibuku baik hati.", "My mother is kind.", "أُمِّي طَيِّبَةُ الْقَلْب."),
-      sentence("👧", "Aku punya satu kakak perempuan.", "I have one sister.", "لِي أُخْتٌ وَاحِدَة."),
-      sentence("🍚", "Kami suka makan bersama.", "We like to eat together.", "نَحْنُ نُحِبُّ الْأَكْلَ مَعًا."),
-      sentence("❤️", "Kami saling menyayangi.", "We love each other.", "نَحْنُ نَتَحَابُّ.")
+      sentence("👨‍👩‍👧", "Ini keluargaku.", "This is my family.", "هَذِهِ عَائِلَتِي.", "Hādhihi ʿāʾilatī"),
+      sentence("👨", "Ayahku tinggi.", "My father is tall.", "أَبِي طَوِيل.", "Abī ṭawīl"),
+      sentence("👩", "Ibuku baik hati.", "My mother is kind.", "أُمِّي طَيِّبَةُ الْقَلْب.", "Ummī ṭayyibatu al-qalb"),
+      sentence("👧", "Aku punya satu kakak perempuan.", "I have one sister.", "لِي أُخْتٌ وَاحِدَة.", "Lī ukhtun wāḥida"),
+      sentence("🍚", "Kami suka makan bersama.", "We like to eat together.", "نَحْنُ نُحِبُّ الْأَكْلَ مَعًا.", "Naḥnu nuḥibbu al-akla maʿan"),
+      sentence("❤️", "Kami saling menyayangi.", "We love each other.", "نَحْنُ نَتَحَابُّ.", "Naḥnu nataḥābbu")
     ],
     questions: [
       { q: "Siapa yang tinggi?", options: ["Ayah", "Ibu", "Kakak"], answer: 0 },
@@ -82,14 +83,14 @@ export const KID_STORIES = [
     color: "#39c98c",
     level: "Sedang",
     sentences: [
-      sentence("🎒", "Hari ini aku pergi ke kebun binatang.", "Today I go to the zoo.", "الْيَوْمَ ذَهَبْتُ إِلَى حَدِيقَةِ الْحَيَوَان."),
-      sentence("🦁", "Aku melihat singa besar.", "I see a big lion.", "رَأَيْتُ أَسَدًا كَبِيرًا."),
-      sentence("🌳", "Singa itu tidur di bawah pohon.", "The lion sleeps under a tree.", "الْأَسَدُ نَائِمٌ تَحْتَ الشَّجَرَة."),
-      sentence("🦒", "Aku juga melihat jerapah.", "I also see a giraffe.", "رَأَيْتُ أَيْضًا زَرَافَة."),
-      sentence("📏", "Leher jerapah sangat panjang.", "The giraffe's neck is very long.", "رَقَبَةُ الزَّرَافَةِ طَوِيلَةٌ جِدًّا."),
-      sentence("🐵", "Ada monyet yang lucu.", "There is a funny monkey.", "هُنَاكَ قِرْدٌ مُضْحِك."),
-      sentence("🍌", "Monyet suka pisang.", "The monkey likes bananas.", "الْقِرْدُ يُحِبُّ الْمَوْز."),
-      sentence("😊", "Aku pulang dengan senang.", "I go home happy.", "عُدْتُ مَسْرُورًا.")
+      sentence("🎒", "Hari ini aku pergi ke kebun binatang.", "Today I go to the zoo.", "الْيَوْمَ ذَهَبْتُ إِلَى حَدِيقَةِ الْحَيَوَان.", "Al-yawma dhahabtu ilā ḥadīqati al-ḥayawān"),
+      sentence("🦁", "Aku melihat singa besar.", "I see a big lion.", "رَأَيْتُ أَسَدًا كَبِيرًا.", "Raʾaytu asadan kabīran"),
+      sentence("🌳", "Singa itu tidur di bawah pohon.", "The lion sleeps under a tree.", "الْأَسَدُ نَائِمٌ تَحْتَ الشَّجَرَة.", "Al-asadu nāʾimun taḥta ash-shajara"),
+      sentence("🦒", "Aku juga melihat jerapah.", "I also see a giraffe.", "رَأَيْتُ أَيْضًا زَرَافَة.", "Raʾaytu aydan zarāfa"),
+      sentence("📏", "Leher jerapah sangat panjang.", "The giraffe's neck is very long.", "رَقَبَةُ الزَّرَافَةِ طَوِيلَةٌ جِدًّا.", "Raqabatu az-zarāfati ṭawīlatun jiddan"),
+      sentence("🐵", "Ada monyet yang lucu.", "There is a funny monkey.", "هُنَاكَ قِرْدٌ مُضْحِك.", "Hunāka qirdun muḍḥik"),
+      sentence("🍌", "Monyet suka pisang.", "The monkey likes bananas.", "الْقِرْدُ يُحِبُّ الْمَوْز.", "Al-qirdu yuḥibbu al-mawz"),
+      sentence("😊", "Aku pulang dengan senang.", "I go home happy.", "عُدْتُ مَسْرُورًا.", "ʿUdtu masrūran")
     ],
     questions: [
       { q: "Di mana singa tidur?", options: ["Di bawah pohon", "Di dalam kandang", "Di atas batu"], answer: 0 },
@@ -106,12 +107,12 @@ export const KID_STORIES = [
     color: "#a06bff",
     level: "Sedang",
     sentences: [
-      sentence("🌌", "Malam ini langit cerah.", "Tonight the sky is clear.", "اللَّيْلَةَ السَّمَاءُ صَافِيَة."),
-      sentence("✨", "Ada banyak bintang.", "There are many stars.", "هُنَاكَ نُجُومٌ كَثِيرَة."),
-      sentence("💡", "Bintang berkelip seperti lampu kecil.", "The stars twinkle like little lamps.", "النُّجُومُ تَلْمَعُ كَمِصْبَاحٍ صَغِير."),
-      sentence("🌕", "Bulan juga bersinar terang.", "The moon also shines brightly.", "الْقَمَرُ أَيْضًا يُضِيءُ بُقُوَّة."),
-      sentence("🔢", "Aku menghitung bintang.", "I count the stars.", "عَدَدْتُ النُّجُوم."),
-      sentence("😴", "Lalu aku tidur dengan nyenyak.", "Then I sleep peacefully.", "ثُمَّ نِمْتُ بِهُدُوء.")
+      sentence("🌌", "Malam ini langit cerah.", "Tonight the sky is clear.", "اللَّيْلَةَ السَّمَاءُ صَافِيَة.", "Al-laylata as-samāʾu ṣāfiya"),
+      sentence("✨", "Ada banyak bintang.", "There are many stars.", "هُنَاكَ نُجُومٌ كَثِيرَة.", "Hunāka nujūmun kathīra"),
+      sentence("💡", "Bintang berkelip seperti lampu kecil.", "The stars twinkle like little lamps.", "النُّجُومُ تَلْمَعُ كَمِصْبَاحٍ صَغِير.", "An-nujūmu talmaʿu kamiṣbāḥin ṣaghīr"),
+      sentence("🌕", "Bulan juga bersinar terang.", "The moon also shines brightly.", "الْقَمَرُ أَيْضًا يُضِيءُ بُقُوَّة.", "Al-qamaru aydan yuḍīʾu bi-quwwa"),
+      sentence("🔢", "Aku menghitung bintang.", "I count the stars.", "عَدَدْتُ النُّجُوم.", "ʿAdadtu an-nujūm"),
+      sentence("😴", "Lalu aku tidur dengan nyenyak.", "Then I sleep peacefully.", "ثُمَّ نِمْتُ بِهُدُوء.", "Thumma nimtu bi-hudūʾ")
     ],
     questions: [
       { q: "Kapan cerita ini terjadi?", options: ["Malam hari", "Pagi hari", "Siang hari"], answer: 0 },
@@ -128,12 +129,12 @@ export const KID_STORIES = [
     color: "#ff7aa2",
     level: "Mudah",
     sentences: [
-      sentence("🎒", "Hari ini hari pertama sekolah.", "Today is the first day of school.", "الْيَوْمَ أَوَّلُ يَوْمٍ فِي الْمَدْرَسَة."),
-      sentence("🏫", "Aku pergi ke sekolah bersama ayah.", "I go to school with my father.", "ذَهَبْتُ إِلَى الْمَدْرَسَةِ مَعَ أَبِي."),
-      sentence("👩‍🏫", "Guru menyambut kami dengan senyum.", "The teacher welcomes us with a smile.", "الْمُعَلِّمَةُ تَسْتَقْبِلُنَا بِابْتِسَامَة."),
-      sentence("📚", "Aku mendapat buku baru.", "I get a new book.", "حَصَلْتُ عَلَى كِتَابٍ جَدِيد."),
-      sentence("🧑‍🤝‍🧑", "Aku duduk di samping teman baru.", "I sit next to a new friend.", "جَلَسْتُ بِجَانِبِ صَدِيقٍ جَدِيد."),
-      sentence("🔔", "Bel berbunyi, kami pulang.", "The bell rings and we go home.", "رَنَّ الْجَرَسُ وَعُدْنَا إِلَى الْبَيْت.")
+      sentence("🎒", "Hari ini hari pertama sekolah.", "Today is the first day of school.", "الْيَوْمَ أَوَّلُ يَوْمٍ فِي الْمَدْرَسَة.", "Al-yawma awwalu yawmin fī al-madrasa"),
+      sentence("🏫", "Aku pergi ke sekolah bersama ayah.", "I go to school with my father.", "ذَهَبْتُ إِلَى الْمَدْرَسَةِ مَعَ أَبِي.", "Dhahabtu ilā al-madrasati maʿa abī"),
+      sentence("👩‍🏫", "Guru menyambut kami dengan senyum.", "The teacher welcomes us with a smile.", "الْمُعَلِّمَةُ تَسْتَقْبِلُنَا بِابْتِسَامَة.", "Al-muʿallimatu tastaqbilunā bi-ibtisāma"),
+      sentence("📚", "Aku mendapat buku baru.", "I get a new book.", "حَصَلْتُ عَلَى كِتَابٍ جَدِيد.", "Ḥaṣaltu ʿalā kitābin jadīd"),
+      sentence("🧑‍🤝‍🧑", "Aku duduk di samping teman baru.", "I sit next to a new friend.", "جَلَسْتُ بِجَانِبِ صَدِيقٍ جَدِيد.", "Jalastu bi-jānibi ṣadīqin jadīd"),
+      sentence("🔔", "Bel berbunyi, kami pulang.", "The bell rings and we go home.", "رَنَّ الْجَرَسُ وَعُدْنَا إِلَى الْبَيْت.", "Ranna al-jarasu wa-ʿudnā ilā al-bayt")
     ],
     questions: [
       { q: "Apa yang diterima di sekolah?", options: ["Buku baru", "Sepatu baru", "Topi baru"], answer: 0 },
@@ -150,12 +151,12 @@ export const KID_STORIES = [
     color: "#ffab3d",
     level: "Mudah",
     sentences: [
-      sentence("🏖️", "Pada hari libur, kami pergi ke pantai.", "On the holiday, we go to the beach.", "فِي يَوْمِ الْعُطْلَةِ ذَهَبْنَا إِلَى الشَّاطِئ."),
-      sentence("🌊", "Ombaknya biru dan indah.", "The waves are blue and beautiful.", "الْأَمْوَاجُ زَرْقَاءُ وَجَمِيلَة."),
-      sentence("🏰", "Aku membuat istana pasir.", "I build a sandcastle.", "بَنَيْتُ قَصْرًا مِنَ الرَّمْل."),
-      sentence("🐚", "Adik mengumpulkan kerang.", "My little sister collects shells.", "أُخْتِي الصَّغِيرَةُ تَجْمَعُ الْأَصْدَاف."),
-      sentence("🍉", "Kami makan semangka bersama.", "We eat watermelon together.", "أَكَلْنَا الْبَطِّيخَ مَعًا."),
-      sentence("🌅", "Kami pulang saat matahari terbenam.", "We go home at sunset.", "عُدْنَا عِنْدَ غُرُوبِ الشَّمْس.")
+      sentence("🏖️", "Pada hari libur, kami pergi ke pantai.", "On the holiday, we go to the beach.", "فِي يَوْمِ الْعُطْلَةِ ذَهَبْنَا إِلَى الشَّاطِئ.", "Fī yawmi al-ʿuṭlati dhahabnā ilā ash-shāṭiʾ"),
+      sentence("🌊", "Ombaknya biru dan indah.", "The waves are blue and beautiful.", "الْأَمْوَاجُ زَرْقَاءُ وَجَمِيلَة.", "Al-amwāju zarqāʾu wa-jamīla"),
+      sentence("🏰", "Aku membuat istana pasir.", "I build a sandcastle.", "بَنَيْتُ قَصْرًا مِنَ الرَّمْل.", "Banaytu qaṣran mina ar-raml"),
+      sentence("🐚", "Adik mengumpulkan kerang.", "My little sister collects shells.", "أُخْتِي الصَّغِيرَةُ تَجْمَعُ الْأَصْدَاف.", "Ukhtī aṣ-ṣaghīratu tajmaʿu al-aṣdāf"),
+      sentence("🍉", "Kami makan semangka bersama.", "We eat watermelon together.", "أَكَلْنَا الْبَطِّيخَ مَعًا.", "Akalanā al-baṭṭīkha maʿan"),
+      sentence("🌅", "Kami pulang saat matahari terbenam.", "We go home at sunset.", "عُدْنَا عِنْدَ غُرُوبِ الشَّمْس.", "ʿUdnā ʿinda ghurūbi ash-shams")
     ],
     questions: [
       { q: "Apa yang dibuat di pantai?", options: ["Istana pasir", "Perahu", "Layang-layang"], answer: 0 },
@@ -172,12 +173,12 @@ export const KID_STORIES = [
     color: "#4f8cff",
     level: "Sedang",
     sentences: [
-      sentence("☁️", "Sore itu langit gelap.", "That afternoon the sky is dark.", "فِي ذَلِكَ الْعَصْرِ كَانَتِ السَّمَاءُ مُظْلِمَة."),
-      sentence("🌧️", "Lalu hujan turun.", "Then the rain falls.", "ثُمَّ نَزَلَ الْمَطَر."),
-      sentence("🧥", "Aku memakai jaket.", "I put on a jacket.", "لَبِسْتُ سُتْرَة."),
-      sentence("☂️", "Ibu membuka payung.", "Mother opens an umbrella.", "فَتَحَتْ أُمِّي الْمِظَلَّة."),
-      sentence("🐸", "Katak bernyanyi di kolam.", "Frogs sing in the pond.", "الضَّفَادِعُ تُغَنِّي فِي الْبِرْكَة."),
-      sentence("🌈", "Setelah hujan, ada pelangi.", "After the rain, there is a rainbow.", "بَعْدَ الْمَطَرِ ظَهَرَ قَوْسُ قُزَح.")
+      sentence("☁️", "Sore itu langit gelap.", "That afternoon the sky is dark.", "فِي ذَلِكَ الْعَصْرِ كَانَتِ السَّمَاءُ مُظْلِمَة.", "Fī dhālika al-ʿaṣri kānati as-samāʾu muẓlima"),
+      sentence("🌧️", "Lalu hujan turun.", "Then the rain falls.", "ثُمَّ نَزَلَ الْمَطَر.", "Thumma nazala al-maṭar"),
+      sentence("🧥", "Aku memakai jaket.", "I put on a jacket.", "لَبِسْتُ سُتْرَة.", "Labistu sutra"),
+      sentence("☂️", "Ibu membuka payung.", "Mother opens an umbrella.", "فَتَحَتْ أُمِّي الْمِظَلَّة.", "Fataḥat ummī al-miẓalla"),
+      sentence("🐸", "Katak bernyanyi di kolam.", "Frogs sing in the pond.", "الضَّفَادِعُ تُغَنِّي فِي الْبِرْكَة.", "Aḍ-ḍafādiʿu tughannī fī al-birka"),
+      sentence("🌈", "Setelah hujan, ada pelangi.", "After the rain, there is a rainbow.", "بَعْدَ الْمَطَرِ ظَهَرَ قَوْسُ قُزَح.", "Baʿda al-maṭari ẓahara qawsu quzaḥ")
     ],
     questions: [
       { q: "Apa yang dipakai saat hujan?", options: ["Jaket", "Topi", "Sandal"], answer: 0 },
@@ -194,12 +195,12 @@ export const KID_STORIES = [
     color: "#a06bff",
     level: "Sedang",
     sentences: [
-      sentence("🎉", "Besok ada hari raya.", "Tomorrow is the holiday.", "غَدًا الْعِيد."),
-      sentence("👗", "Ibu membelikan baju baru.", "Mother buys a new dress.", "اِشْتَرَتْ لِي أُمِّي ثَوْبًا جَدِيدًا."),
-      sentence("👞", "Aku juga punya sepatu baru.", "I also have new shoes.", "لَدَيَّ أَيْضًا حِذَاءٌ جَدِيد."),
-      sentence("🧼", "Aku mandi dan memakai wangi-wangian.", "I bathe and put on perfume.", "اِسْتَحْمَمْتُ وَتَعَطَّرْتُ."),
-      sentence("🕌", "Kami pergi salat bersama.", "We go to pray together.", "ذَهَبْنَا إِلَى الصَّلَاةِ مَعًا."),
-      sentence("🤝", "Aku bersalaman dengan tetangga.", "I shake hands with the neighbours.", "صَافَحْتُ الْجِيرَان.")
+      sentence("🎉", "Besok ada hari raya.", "Tomorrow is the holiday.", "غَدًا الْعِيد.", "Ghadan al-ʿīd"),
+      sentence("👗", "Ibu membelikan baju baru.", "Mother buys a new dress.", "اِشْتَرَتْ لِي أُمِّي ثَوْبًا جَدِيدًا.", "Ishtarat lī ummī thawban jadīdan"),
+      sentence("👞", "Aku juga punya sepatu baru.", "I also have new shoes.", "لَدَيَّ أَيْضًا حِذَاءٌ جَدِيد.", "Ladayya aydan ḥidhāʾun jadīd"),
+      sentence("🧼", "Aku mandi dan memakai wangi-wangian.", "I bathe and put on perfume.", "اِسْتَحْمَمْتُ وَتَعَطَّرْتُ.", "Istaḥmamtu wa-taʿaṭṭartu"),
+      sentence("🕌", "Kami pergi salat bersama.", "We go to pray together.", "ذَهَبْنَا إِلَى الصَّلَاةِ مَعًا.", "Dhahabnā ilā aṣ-ṣalāti maʿan"),
+      sentence("🤝", "Aku bersalaman dengan tetangga.", "I shake hands with the neighbours.", "صَافَحْتُ الْجِيرَان.", "Ṣāfaḥtu al-jīrān")
     ],
     questions: [
       { q: "Apa yang dibeli Ibu?", options: ["Baju baru", "Buku baru", "Tas baru"], answer: 0 },

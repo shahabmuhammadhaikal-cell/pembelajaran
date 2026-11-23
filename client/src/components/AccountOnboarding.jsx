@@ -29,6 +29,8 @@ export default function AccountOnboarding() {
   const [leaderboard, setLeaderboard] = useState(true)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState("")
+  // Server belum punya kredensial Firebase: bukan masalah koneksi pengguna.
+  const [setupBlocked, setSetupBlocked] = useState(false)
 
   const fallbackName = useMemo(() => {
     const email = String((user && user.email) || "")
@@ -39,6 +41,7 @@ export default function AccountOnboarding() {
     if (!shouldOpen) return
     setStep(0)
     setError("")
+    setSetupBlocked(false)
     setName((profile && profile.name) || fallbackName)
     setAvatar((profile && profile.avatar) || AVATAR_CHOICES[0])
     setGoal((profile && profile.dailyGoal) || state.settings.dailyGoal || 5)
@@ -51,6 +54,7 @@ export default function AccountOnboarding() {
   const close = () => {
     setBusy(false)
     setError("")
+    setSetupBlocked(false)
     actions.setUi({ onboardingOpen: false })
   }
 
@@ -59,12 +63,15 @@ export default function AccountOnboarding() {
     setError("")
     try {
       queue({ profile: payload })
-      const ok = await flushNow()
-      if (!ok) throw new Error("Profil belum tersimpan. Periksa koneksi lalu coba lagi.")
+      const result = await flushNow()
+      if (!result.ok) throw new Error(result.error || "Profil belum tersimpan. Coba lagi.")
       actions.setSetting("dailyGoal", payload.dailyGoal || goal)
       close()
     } catch (err) {
-      setError(err && err.message ? err.message : "Gagal menyimpan profil")
+      const message = err && err.message ? err.message : "Gagal menyimpan profil"
+      // Tanpa kredensial di server, menyimpan profil tidak mungkin berhasil.
+      if (/FIREBASE_SERVICE_ACCOUNT|belum dikonfigurasi/i.test(message)) setSetupBlocked(true)
+      else setError(message)
     } finally {
       setBusy(false)
     }
@@ -90,7 +97,7 @@ export default function AccountOnboarding() {
   return (
     <Modal
       open={shouldOpen}
-      onClose={isEdit ? close : skip}
+      onClose={setupBlocked || isEdit ? close : skip}
       title={isEdit ? "Edit profil" : "Selamat datang!"}
       subtitle={isEdit ? "Atur tampilan dan target harianmu" : "Kenalan dulu, lalu mulai belajar"}
     >
@@ -181,6 +188,12 @@ export default function AccountOnboarding() {
       ) : null}
 
       {error ? <p className="account-error">{error}</p> : null}
+      {setupBlocked ? (
+        <p className="account-error">
+          Sinkronisasi akun belum aktif di server ini, jadi profil belum bisa disimpan ke akun. Progresmu
+          tetap tersimpan di perangkat ini. Tekan tutup untuk melanjutkan.
+        </p>
+      ) : null}
 
       <div className="onboarding-actions">
         {step > 0 ? (
@@ -188,8 +201,8 @@ export default function AccountOnboarding() {
             Kembali
           </button>
         ) : !isEdit ? (
-          <button className="btn btn-ghost" type="button" onClick={skip} disabled={busy}>
-            Lewati
+          <button className="btn btn-ghost" type="button" onClick={setupBlocked ? close : skip} disabled={busy}>
+            {setupBlocked ? "Tutup" : "Lewati"}
           </button>
         ) : (
           <span />

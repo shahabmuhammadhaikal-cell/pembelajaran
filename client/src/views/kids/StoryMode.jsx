@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { kidSay, playSfx } from "../../lib/kidsAudio.js"
+import { kidSay, kidSaySpeech, playSfx } from "../../lib/kidsAudio.js"
 
 function shuffle(list) {
   const arr = list.slice()
@@ -35,6 +35,7 @@ export default function StoryMode({ story, settings, onBack, onFinish }) {
   )
 
   const sentenceText = sentences[index][lang] || sentences[index].id
+  const sentenceLatin = sentences[index].tr
   const secondary = ["id", "en", "ar"].filter(key => key !== lang)
 
   useEffect(() => {
@@ -48,9 +49,9 @@ export default function StoryMode({ story, settings, onBack, onFinish }) {
   // Suara otomatis setiap kalimat berganti.
   useEffect(() => {
     if (!sound || phase !== "read") return undefined
-    const timer = setTimeout(() => kidSay(sentenceText, lang, { slow }), 320)
+    const timer = setTimeout(() => kidSaySpeech({ text: sentenceText, lang, latin: sentenceLatin }, { slow }), 320)
     return () => clearTimeout(timer)
-  }, [sentenceText, lang, sound, slow, phase])
+  }, [sentenceText, sentenceLatin, lang, sound, slow, phase])
 
   // Putar otomatis kalimat berikutnya.
   useEffect(() => {
@@ -217,7 +218,7 @@ export default function StoryMode({ story, settings, onBack, onFinish }) {
             className="kid-btn kid-btn-ghost kid-btn-sm"
             onClick={() => {
               playSfx("pop")
-              kidSay(sentenceText, lang, { slow })
+              kidSaySpeech({ text: sentenceText, lang, latin: sentenceLatin }, { slow })
             }}
           >
             🔊 Dengar

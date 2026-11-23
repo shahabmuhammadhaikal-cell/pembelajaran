@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { TOPIC_MAP } from "../../lib/kidsData.js"
-import { kidSay, playSfx } from "../../lib/kidsAudio.js"
+import { kidSaySpeech, playSfx } from "../../lib/kidsAudio.js"
 
 const ROUNDS = 5
 const OBJECTS = ["🍎", "🍌", "🐟", "⭐", "🎈", "🍓", "🐥", "🌸", "🍪", "🚗"]
@@ -15,8 +15,12 @@ function shuffle(list) {
   return arr
 }
 
+function numberEntry(value) {
+  return NUMBERS.find(entry => entry.numeral === value)
+}
+
 function numberWord(value, lang) {
-  const found = NUMBERS.find(entry => entry.numeral === value)
+  const found = numberEntry(value)
   return found ? found[lang] || found.en : String(value)
 }
 
@@ -58,7 +62,13 @@ export default function CountGame({ settings, onBack, onStar, onWin }) {
           setScore(previous => previous + 1)
           onStar()
         }
-        if (sound) kidSay(numberWord(current.count, lang), lang, { slow })
+        if (sound) {
+          const found = numberEntry(current.count)
+          kidSaySpeech(
+            { text: numberWord(current.count, lang), lang, latin: found ? found.tr : "" },
+            { slow }
+          )
+        }
       } else {
         playSfx("wrong")
         setWrong(previous => (previous.includes(value) ? previous : [...previous, value]))

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { KID_PLAY_ITEMS } from "../../lib/kidsData.js"
-import { kidSay, playSfx } from "../../lib/kidsAudio.js"
+import { kidSaySpeech, playSfx } from "../../lib/kidsAudio.js"
 
 const ROUNDS = 8
 
@@ -49,7 +49,7 @@ export default function GuessGame({ settings, onBack, onStar, onWin }) {
           setScore(previous => previous + 1)
           onStar()
         }
-        if (sound) kidSay(current.target[lang], lang, { slow })
+        if (sound) kidSaySpeech({ text: current.target[lang], lang, latin: current.target.tr }, { slow })
       } else {
         playSfx("wrong")
         setWrong(previous => (previous.includes(option.key + option.emoji) ? previous : [...previous, option.key + option.emoji]))
