@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useApp } from "../state/useApp.js"
 import { useStudyItems } from "../hooks/useStudyItems.js"
+import { imageForEntry, useWordImages } from "../lib/wordImages.js"
 import { srsKey, srsSnapshot } from "../lib/srs.js"
 import { speak } from "../lib/speech.js"
 import {
@@ -24,6 +25,7 @@ const LANG_OF = { en: "English", ar: "العربية", id: "Indonesia" }
 export default function Cards() {
   const { state, actions } = useApp()
   const { items, loading, directionPair } = useStudyItems()
+  const wordImages = useWordImages()
   const [speaking, setSpeaking] = useState(false)
   const counted = useRef(new Set())
 
@@ -99,6 +101,7 @@ export default function Cards() {
   const isFavorite = item ? Number(state.progress.favorites[srsKey(item)]) > 0 : false
   const goal = state.settings.dailyGoal || 10
   const done = state.progress.completedToday || 0
+  const imageSrc = imageForEntry(wordImages, item)
 
   if (loading && !item) {
     return (
@@ -174,7 +177,12 @@ export default function Cards() {
           aria-label="Balik kartu"
         >
           <div className="face front">
-            {state.settings.media && item.emoji ? <div className="card-emoji">{item.emoji}</div> : null}
+            {state.settings.media && imageSrc ? (
+              <img className="card-image" src={imageSrc} alt={sourceText} loading="lazy" />
+            ) : null}
+            {state.settings.media && !imageSrc && item.emoji ? (
+              <div className="card-emoji">{item.emoji}</div>
+            ) : null}
             <div className={`card-word ${isArabicSource ? "arabic" : ""}`}>{sourceText}</div>
             {isArabicSource && item.tr ? <div className="translit">{item.tr}</div> : null}
             <div className="card-hint">

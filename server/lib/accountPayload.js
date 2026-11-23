@@ -16,6 +16,8 @@ const MAX_ERRORS = 60
 const MAX_HISTORY = 20
 const MAX_CUSTOM = 200
 const MAX_SETTINGS = 40
+const MAX_NAME = 40
+const MAX_AVATAR = 8
 
 function fail(message, status = 422) {
   const error = new Error(message)
@@ -196,6 +198,31 @@ function favoritesOf(value) {
   return out
 }
 
+/** Profil tampilan akun: nama panggilan, avatar, target harian, dsb. */
+function profileOf(value) {
+  const source = plain(value)
+  if (!source) fail("profile harus berupa objek")
+  const out = {}
+  if (source.name !== undefined) out.name = String(source.name == null ? "" : source.name).trim().slice(0, MAX_NAME)
+  if (source.avatar !== undefined) out.avatar = String(source.avatar == null ? "" : source.avatar).trim().slice(0, MAX_AVATAR)
+  if (source.dailyGoal !== undefined) out.dailyGoal = Math.max(1, Math.min(60, counter(source.dailyGoal) || 10))
+  if (source.onboarded !== undefined) out.onboarded = !!source.onboarded
+  if (source.leaderboard !== undefined) out.leaderboard = !!source.leaderboard
+  if (source.dailyChallenge !== undefined) {
+    const challenge = plain(source.dailyChallenge)
+    out.dailyChallenge = challenge
+      ? {
+          day: text(challenge.day, 20),
+          correct: counter(challenge.correct),
+          total: counter(challenge.total),
+          doneAt: counter(challenge.doneAt)
+        }
+      : null
+  }
+  if (!Object.keys(out).length) fail("profile tidak berisi field yang dikenal")
+  return out
+}
+
 function kidsProfile(value, fallbackId = "p1") {
   const source = plain(value) || {}
   return {
@@ -241,6 +268,14 @@ function adultProgress(value) {
   if (!source) return null
   return {
     srs: srsMap(source.srs),
+    dailyChallenge: plain(source.dailyChallenge)
+      ? {
+          day: text(source.dailyChallenge.day, 20),
+          correct: counter(source.dailyChallenge.correct),
+          total: counter(source.dailyChallenge.total),
+          doneAt: counter(source.dailyChallenge.doneAt)
+        }
+      : null,
     favorites: favoritesOf(source.favorites),
     quizErrors: quizErrors(source.quizErrors),
     translateHistory: translateHistory(source.translateHistory),
@@ -272,8 +307,9 @@ function sanitizeAccountPatch(body) {
   const out = {}
   if (source.kids !== undefined && source.kids !== null) out.kids = kidsDoc(source.kids)
   if (source.adult !== undefined && source.adult !== null) out.adult = adult(source.adult)
-  if (!out.kids && !out.adult) fail("payload harus berisi kids atau adult")
+  if (source.profile !== undefined && source.profile !== null) out.profile = profileOf(source.profile)
+  if (!out.kids && !out.adult && !out.profile) fail("payload harus berisi kids, adult, atau profile")
   return out
 }
 
-module.exports = { sanitizeAccountPatch, MAX_BYTES, MAX_PROFILES }
+module.exports = { sanitizeAccountPatch, profileOf, MAX_BYTES, MAX_PROFILES }

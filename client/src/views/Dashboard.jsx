@@ -2,6 +2,7 @@ import { useMemo } from "react"
 import { useApp } from "../state/useApp.js"
 import { useStudyItems } from "../hooks/useStudyItems.js"
 import { summarizeProgress, srsKey, srsSnapshot } from "../lib/srs.js"
+import { challengeDone, dailyChallenge } from "../lib/dailyChallenge.js"
 import { IconFlame, IconTarget, IconSparkles, IconArrowRight } from "../components/Icons.jsx"
 
 function greeting() {
@@ -90,6 +91,15 @@ export default function Dashboard() {
   }, [state.catalog.categories, state.entriesByCategory, state.progress.srs])
 
   const recentErrors = (state.progress.quizErrors || []).slice(0, 8)
+  const challenge = useMemo(
+    () => dailyChallenge(state.catalog.categories),
+    [state.catalog.categories]
+  )
+  const challengeRecord =
+    state.progress.dailyChallenge && state.progress.dailyChallenge.day === challenge.day
+      ? state.progress.dailyChallenge
+      : null
+  const challengeFinished = challengeDone(state.progress, challenge)
 
   if (!state.catalog.loaded) {
     return (
@@ -163,6 +173,37 @@ export default function Dashboard() {
           </div>
         </section>
       </div>
+
+      <section className={`challenge-card ${challengeFinished ? "done" : ""}`}>
+        <div className="challenge-icon" aria-hidden>{challengeFinished ? "🏆" : "🎯"}</div>
+        <div className="challenge-copy">
+          <div className="eyebrow">Tantangan hari ini</div>
+          <div className="challenge-title">
+            {challenge.total} soal {challenge.categoryName} · benar minimal {challenge.target}
+          </div>
+          <div className="note">
+            {challengeFinished
+              ? `Selesai! ${challengeRecord.correct}/${challengeRecord.total} benar hari ini.`
+              : challengeRecord
+                ? `Percobaan terakhir ${challengeRecord.correct}/${challengeRecord.total} benar — coba lagi.`
+                : "Sama untuk semua orang hari ini · hasil masuk ke progres akun."}
+          </div>
+        </div>
+        <div className="challenge-actions">
+          <button
+            className="btn btn-primary btn-sm"
+            onClick={() => {
+              actions.selectCategory(challenge.categoryId)
+              actions.setUi({ tab: "quiz", challengeDay: challenge.day })
+            }}
+          >
+            {challengeFinished ? "Ulangi tantangan" : "Mulai tantangan"}
+          </button>
+          <button className="btn btn-ghost btn-sm" onClick={() => actions.setUi({ leaderboardOpen: true })}>
+            Papan peringkat
+          </button>
+        </div>
+      </section>
 
       <div className="stats-grid">
         <div className="stat-tile tone-primary">

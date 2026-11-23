@@ -7,6 +7,7 @@ import {
   currentIdToken,
   linkGoogle,
   reauthenticateWithGoogle,
+  sendMagicLink,
   sendPasswordReset,
   sendVerificationEmail,
   signInEmail,
@@ -17,8 +18,12 @@ import {
 import {
   deleteAccount as deleteAccountRequest,
   fetchAccountProgress,
+  generateFamilyCode,
+  joinFamily,
+  leaveFamily,
   requestDeletionTicket
 } from "../lib/accountApi.js"
+import { accountDisplayName, accountInitial, levelFromPoints } from "../lib/accountLevel.js"
 import { deleteAccountWithReauth } from "../lib/accountDeletion.js"
 import { resetAccountSession } from "../lib/accountOwner.js"
 import { clearKidsStorage } from "../hooks/useKidsProgress.js"
@@ -43,10 +48,36 @@ function clearLocalProgress() {
   }
 }
 
+const ACHIEVEMENTS = [
+  { id: "first", icon: "🌱", label: "Langkah pertama", test: stats => stats.points > 0 },
+  { id: "stars100", icon: "⭐", label: "100 bintang", test: stats => stats.stars >= 100 },
+  { id: "mastered50", icon: "📚", label: "50 kata dikuasai", test: stats => stats.mastered >= 50 },
+  { id: "streak7", icon: "🔥", label: "7 hari beruntun", test: stats => stats.streak >= 7 },
+  { id: "favorites", icon: "💜", label: "10 favorit", test: stats => stats.favorites >= 10 },
+  { id: "quiz100", icon: "🎯", label: "100 jawaban", test: stats => stats.attempts >= 100 },
+  { id: "level3", icon: "🏅", label: "Level 3", test: stats => stats.level >= 3 }
+]
+
+const EMPTY_STATS = {
+  points: 0,
+  stars: 0,
+  mastered: 0,
+  streak: 0,
+  attempts: 0,
+  favorites: 0,
+  level: 1,
+  levelTitle: "Pemula"
+}
+
 export default function AccountModal() {
   const { state, actions } = useApp()
   const { configured, user, ready, refreshUser } = useAuth()
-  const { status, lastSaved, error, flushNow, retry } = useSync()
+  const { status, lastSaved, error, flushNow, retry, refresh, session, queue } = useSync()
+  const profile = session.account && session.account.profile
+  const stats = session.stats || EMPTY_STATS
+  const role = (session.account && session.account.role) || "user"
+  const family = session.family || null
+  const level = stats.level ? { level: stats.level, title: stats.levelTitle } : levelFromPoints(stats.points)
   const [mode, setMode] = useState("masuk")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -58,6 +89,14 @@ export default function AccountModal() {
   const [deleteBusy, setDeleteBusy] = useState(false)
   const [deletePassword, setDeletePassword] = useState("")
   const [deleteError, setDeleteError] = useState("")
+  const [magicSent, setMagicSent] = useState("")
+  const [profileBusy, setProfileBusy] = useState(false)
+  const [profileError, setProfileError] = useState("")
+  const [familyCode, setFamilyCode] = useState("")
+  const [joinCode, setJoinCode] = useState("")
+  const [familyBusy, setFamilyBusy] = useState(false)
+  const [familyError, setFamilyError] = useState("")
+  const [familyMessage, setFamilyMessage] = useState("")
 
   if (!state.ui.accountOpen) return null
 
@@ -80,7 +119,12 @@ export default function AccountModal() {
     setFormError("")
     setMessage("")
     try {
-      if (mode === "daftar") {
+      if (mode === "tautan") {
+        if (!email.trim()) throw new Error("Isi email dulu untuk menerima tautan masuk.")
+        await sendMagicLink(email)
+        setMagicSent(email.trim())
+        setMessage("Tautan masuk sudah dikirim. Buka email itu di perangkat ini untuk masuk.")
+      } else if (mode === "daftar") {
         await signUpEmail(email, password)
         await sendVerificationEmail().catch(() => {})
         setMessage("Akun dibuat. Kami mengirim tautan verifikasi ke email kamu.")
@@ -203,6 +247,84 @@ export default function AccountModal() {
       setBusy(false)
     }
   }
+
+  const withToken = async task => {
+    const token = await currentIdToken()
+    if (!token) throw new Error("Sesi login berakhir. Silakan masuk lagi.")
+    return task(token)
+  }
+
+  const toggleLeaderboard = async () => {
+    setProfileBusy(true)
+    setProfileError("")
+    try {
+      queue({ profile: { leaderboard: !(profile && profile.leaderboard) } })
+      const ok = await flushNow()
+      if (!ok) throw new Error("Belum tersimpan. Periksa koneksi lalu coba lagi.")
+    } catch (errorValue) {
+      setProfileError(errorValue && errorValue.message ? errorValue.message : "Gagal menyimpan")
+    } finally {
+      setProfileBusy(false)
+    }
+  }
+
+  const createFamilyCode = async () => {
+    setFamilyBusy(true)
+    setFamilyError("")
+    setFamilyMessage("")
+    try {
+      if (profile && profile.familyCode) {
+        try {
+          await navigator.clipboard.writeText(profile.familyCode)
+          setFamilyMessage("Kode keluarga disalin.")
+        } catch {
+          setFamilyMessage(`Kode keluarga: ${profile.familyCode}`)
+        }
+        return
+      }
+      const data = await withToken(token => generateFamilyCode(token))
+      setFamilyCode(data.code || "")
+      setFamilyMessage("Kode keluarga siap dibagikan.")
+      await retryProfile()
+    } catch (errorValue) {
+      setFamilyError(errorValue && errorValue.message ? errorValue.message : "Gagal membuat kode")
+    } finally {
+      setFamilyBusy(false)
+    }
+  }
+
+  const joinFamilyCode = async () => {
+    setFamilyBusy(true)
+    setFamilyError("")
+    setFamilyMessage("")
+    try {
+      const data = await withToken(token => joinFamily(token, joinCode))
+      setJoinCode("")
+      setFamilyMessage(`Bergabung dengan keluarga ${data.family ? data.family.ownerName : ""}.`.trim())
+      await retryProfile()
+    } catch (errorValue) {
+      setFamilyError(errorValue && errorValue.message ? errorValue.message : "Gagal bergabung")
+    } finally {
+      setFamilyBusy(false)
+    }
+  }
+
+  const leaveFamilyGroup = async () => {
+    setFamilyBusy(true)
+    setFamilyError("")
+    setFamilyMessage("")
+    try {
+      await withToken(token => leaveFamily(token))
+      setFamilyMessage("Kamu keluar dari keluarga. Profil anak di perangkat ini tetap ada.")
+      await retryProfile()
+    } catch (errorValue) {
+      setFamilyError(errorValue && errorValue.message ? errorValue.message : "Gagal keluar")
+    } finally {
+      setFamilyBusy(false)
+    }
+  }
+
+  const retryProfile = async () => refresh().catch(() => false)
 
   const logout = async () => {
     setFormError("")
@@ -336,14 +458,129 @@ export default function AccountModal() {
             <div className="account-profile-wrap">
               <div className="account-profile">
                 <div className="account-avatar" aria-hidden>
-                  {(user.email || "?").slice(0, 1).toUpperCase()}
+                  {(profile && profile.avatar) || accountInitial(profile, user.email)}
                 </div>
-                <div>
-                  <div className="account-email">{user.email}</div>
+                <div className="account-identity">
+                  <div className="account-email">
+                    {accountDisplayName(profile, user.email)}
+                    {role === "admin" ? <span className="role-badge">Admin</span> : null}
+                  </div>
+                  <div className="account-subline">
+                    <span className="level-pill">Lv {level.level} · {level.title}</span>
+                    <span>{user.email}</span>
+                  </div>
                   <div className={`account-sync status-${status}`}>
                     {syncLabel(status, lastSaved, error)}
                   </div>
                 </div>
+                <button
+                  className="btn btn-ghost btn-sm account-edit"
+                  onClick={() => actions.setUi({ accountOpen: false, onboardingOpen: true })}
+                >
+                  Edit profil
+                </button>
+              </div>
+
+              <div className="account-stat-grid">
+                <div className="account-stat">
+                  <strong>{stats.points}</strong>
+                  <span>Poin</span>
+                </div>
+                <div className="account-stat">
+                  <strong>⭐ {stats.stars}</strong>
+                  <span>Bintang</span>
+                </div>
+                <div className="account-stat">
+                  <strong>{stats.mastered}</strong>
+                  <span>Kata dikuasai</span>
+                </div>
+                <div className="account-stat">
+                  <strong>🔥 {stats.streak}</strong>
+                  <span>Hari beruntun</span>
+                </div>
+              </div>
+
+              <div className="achievement-row">
+                {ACHIEVEMENTS.map(badge => {
+                  const unlocked = badge.test(stats)
+                  return (
+                    <span
+                      key={badge.id}
+                      className={`achievement ${unlocked ? "unlocked" : "locked"}`}
+                      title={badge.label}
+                    >
+                      <span aria-hidden>{badge.icon}</span>
+                      {badge.label}
+                    </span>
+                  )
+                })}
+              </div>
+
+              <div className="account-option-row">
+                <label className="toggle-row compact">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(profile && profile.leaderboard)}
+                    onChange={toggleLeaderboard}
+                    disabled={profileBusy}
+                  />
+                  <span>Tampilkan saya di papan peringkat</span>
+                </label>
+                <button
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => actions.setUi({ leaderboardOpen: true })}
+                >
+                  Lihat peringkat
+                </button>
+              </div>
+              {profileError ? <p className="account-error">{profileError}</p> : null}
+
+              <div className="account-family">
+                <div className="account-danger-title">Keluarga</div>
+                {family && family.joined ? (
+                  <>
+                    <p className="note">
+                      Profil Mode Anak dibagi dengan <strong>{family.ownerName}</strong>. Progres dewasa
+                      tetap milik akun ini.
+                    </p>
+                    <button className="btn btn-ghost btn-sm" onClick={leaveFamilyGroup} disabled={familyBusy}>
+                      Keluar dari keluarga
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <p className="note">
+                      Bagikan profil anak ke akun lain (mis. akun orang tua dan akun anak) dengan satu kode.
+                    </p>
+                    <div className="family-code-row">
+                      <code className="family-code">{(profile && profile.familyCode) || familyCode || "——————"}</code>
+                      <button className="btn btn-soft btn-sm" onClick={createFamilyCode} disabled={familyBusy}>
+                        {profile && profile.familyCode ? "Salin kode" : "Buat kode"}
+                      </button>
+                    </div>
+                    {profile && profile.familyCode ? (
+                      <p className="note">Bagikan kode ini ke akun keluarga. Setiap kode hanya untuk satu akun.</p>
+                    ) : null}
+                    <div className="family-join-row">
+                      <input
+                        className="input"
+                        value={joinCode}
+                        onChange={event => setJoinCode(event.target.value.toUpperCase())}
+                        placeholder="Masukkan kode keluarga"
+                        maxLength={10}
+                      />
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        onClick={joinFamilyCode}
+                        disabled={familyBusy || joinCode.trim().length < 4}
+                      >
+                        Gabung
+                      </button>
+                    </div>
+                  </>
+                )}
+                {familyError ? <p className="account-error">{familyError}</p> : null}
+                {familyMessage ? <p className="account-ok">{familyMessage}</p> : null}
               </div>
 
               {user.emailVerified === false ? (
@@ -524,6 +761,17 @@ export default function AccountModal() {
                 >
                   Daftar
                 </button>
+                <button
+                  type="button"
+                  className={mode === "tautan" ? "active" : ""}
+                  onClick={() => {
+                    setMode("tautan")
+                    setFormError("")
+                    setMessage("")
+                  }}
+                >
+                  Tautan email
+                </button>
               </div>
 
               <form className="account-form" onSubmit={submit}>
@@ -540,27 +788,35 @@ export default function AccountModal() {
                     placeholder="nama@email.com"
                   />
                 </div>
-                <div className="form-row">
-                  <label htmlFor="account-password">Password</label>
-                  <input
-                    id="account-password"
-                    className="input"
-                    type="password"
-                    autoComplete={mode === "daftar" ? "new-password" : "current-password"}
-                    required
-                    minLength={6}
-                    value={password}
-                    onChange={event => setPassword(event.target.value)}
-                    placeholder="Minimal 6 karakter"
-                  />
-                </div>
+                {mode !== "tautan" ? (
+                  <div className="form-row">
+                    <label htmlFor="account-password">Password</label>
+                    <input
+                      id="account-password"
+                      className="input"
+                      type="password"
+                      autoComplete={mode === "daftar" ? "new-password" : "current-password"}
+                      required
+                      minLength={6}
+                      value={password}
+                      onChange={event => setPassword(event.target.value)}
+                      placeholder="Minimal 6 karakter"
+                    />
+                  </div>
+                ) : (
+                  <p className="note">
+                    Tanpa password: kami mengirim tautan masuk ke emailmu. Buka tautan itu di perangkat
+                    ini untuk masuk otomatis.
+                  </p>
+                )}
+                {magicSent ? <p className="account-ok">Tautan dikirim ke {magicSent}.</p> : null}
 
                 {formError ? <p className="account-error">{formError}</p> : null}
                 {message ? <p className="account-ok">{message}</p> : null}
 
                 <button className="btn btn-primary" type="submit" disabled={busy}>
                   {busy ? <span className="spinner" /> : null}
-                  {mode === "daftar" ? "Buat akun" : "Masuk"}
+                  {mode === "daftar" ? "Buat akun" : mode === "tautan" ? "Kirim tautan masuk" : "Masuk"}
                 </button>
               </form>
 

@@ -382,6 +382,29 @@ export function AppProvider({ children }) {
     return next
   }, [state.progress.favorites])
 
+  /** Selesaikan tantangan harian: catat skor di progres akun. */
+  const completeChallenge = useCallback(
+    (correct, total, day) => {
+      const target = 8
+      const progress = recordStudyEvent(
+        {
+          ...state.progress,
+          dailyChallenge: { day, correct, total, doneAt: Date.now() }
+        },
+        { goal: state.settings.dailyGoal }
+      )
+      dispatch({ type: "REPLACE_PROGRESS", progress })
+      pushProgress(true)
+      pushToast(
+        correct >= target
+          ? `Tantangan selesai! ${correct}/${total} benar 🎉`
+          : `Tantangan hari ini ${correct}/${total} benar. Coba lagi besok!`,
+        correct >= target ? "success" : "warn"
+      )
+    },
+    [state.progress, state.settings.dailyGoal, pushProgress, pushToast]
+  )
+
   const markStudied = useCallback(() => {
     const progress = recordStudyEvent(state.progress, { goal: state.settings.dailyGoal })
     dispatch({ type: "REPLACE_PROGRESS", progress })
@@ -448,6 +471,7 @@ export function AppProvider({ children }) {
         selectCategory,
         recordAnswer,
         toggleFavorite,
+        completeChallenge,
         markStudied,
         saveTranslateHistory,
         clearTranslateHistory,
@@ -478,6 +502,7 @@ export function AppProvider({ children }) {
       selectCategory,
       recordAnswer,
       toggleFavorite,
+      completeChallenge,
       markStudied,
       saveTranslateHistory,
       clearTranslateHistory,

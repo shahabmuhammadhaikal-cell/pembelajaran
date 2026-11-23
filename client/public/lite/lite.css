@@ -1,0 +1,400 @@
+/* Gaya versi ringan: tanpa CSS variables, aman untuk Safari lama (iOS 10). */
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: #0b0f1a;
+  color: #e9edf7;
+  font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+
+* {
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+/* Tailwind tidak dipakai di sini: pastikan atribut hidden menang atas display milik kelas. */
+[hidden] {
+  display: none !important;
+}
+
+.wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 20px 18px 48px;
+}
+
+.head {
+  margin-bottom: 18px;
+}
+
+.brand {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-align-items: center;
+  align-items: center;
+}
+
+.brand-mark {
+  width: 52px;
+  height: 52px;
+  margin-right: 14px;
+  border-radius: 16px;
+  background: -webkit-linear-gradient(135deg, #7c5cff, #35c2ff);
+  background: linear-gradient(135deg, #7c5cff, #35c2ff);
+  color: #fff;
+  font-size: 26px;
+  line-height: 52px;
+  text-align: center;
+}
+
+h1 {
+  margin: 0;
+  font-size: 24px;
+  letter-spacing: -0.01em;
+}
+
+.brand-sub {
+  margin: 4px 0 0;
+  color: #93a0bd;
+  font-size: 14px;
+}
+
+.panel {
+  background: #131a2b;
+  border: 1px solid #223052;
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.field {
+  display: block;
+  margin-bottom: 12px;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 6px;
+  color: #93a0bd;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+select {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 12px;
+  border: 1px solid #2a3a5f;
+  border-radius: 12px;
+  background: #0f1524;
+  color: #e9edf7;
+  font-size: 17px;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.direction {
+  display: -webkit-flex;
+  display: flex;
+}
+
+.dir-btn {
+  -webkit-flex: 1;
+  flex: 1;
+  min-height: 46px;
+  padding: 8px 6px;
+  border: 1px solid #2a3a5f;
+  background: #0f1524;
+  color: #a9b5cf;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.dir-btn:first-child {
+  border-radius: 12px 0 0 12px;
+}
+
+.dir-btn:last-child {
+  border-radius: 0 12px 12px 0;
+  border-left: 0;
+}
+
+.dir-btn.is-active {
+  background: #22315a;
+  color: #fff;
+  font-weight: 600;
+}
+
+.tabs {
+  display: -webkit-flex;
+  display: flex;
+  margin: 18px 0 12px;
+  background: #131a2b;
+  border: 1px solid #223052;
+  border-radius: 14px;
+  padding: 5px;
+}
+
+.tab {
+  -webkit-flex: 1;
+  flex: 1;
+  min-height: 46px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #93a0bd;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.tab.is-active {
+  background: #2b3f74;
+  color: #fff;
+  font-weight: 600;
+}
+
+.status {
+  margin: 10px 2px;
+  color: #93a0bd;
+  font-size: 14px;
+  min-height: 20px;
+}
+
+.view {
+  margin-top: 4px;
+}
+
+.card {
+  position: relative;
+  min-height: 260px;
+  padding: 28px 22px;
+  background: #101728;
+  border: 1px solid #24345a;
+  border-radius: 20px;
+  text-align: center;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.card:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  height: 4px;
+  background: -webkit-linear-gradient(left, #7c5cff, #35c2ff);
+  background: linear-gradient(90deg, #7c5cff, #35c2ff);
+}
+
+.card-side {
+  margin: 6px 0 14px;
+  color: #7f8cae;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.card-main {
+  margin: 0;
+  font-size: 32px;
+  line-height: 1.35;
+  font-weight: 700;
+  word-wrap: break-word;
+}
+
+.card-sub {
+  margin: 12px 0 0;
+  color: #9fb0d3;
+  font-size: 17px;
+  font-style: italic;
+  min-height: 22px;
+}
+
+.card-hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 14px;
+  margin: 0;
+  color: #6c7a9c;
+  font-size: 13px;
+}
+
+.counter {
+  margin: 12px 0;
+  text-align: center;
+  color: #93a0bd;
+  font-size: 14px;
+}
+
+.row {
+  display: -webkit-flex;
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.row .btn {
+  -webkit-flex: 1;
+  flex: 1;
+}
+
+.row .btn + .btn {
+  margin-left: 10px;
+}
+
+.btn {
+  min-height: 50px;
+  padding: 12px 16px;
+  border: 1px solid #2a3a5f;
+  border-radius: 12px;
+  background: #182238;
+  color: #dbe4f7;
+  font-size: 16px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: rgba(124, 92, 255, 0.25);
+}
+
+.btn:active {
+  background: #22315a;
+}
+
+.btn[disabled] {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.btn-primary {
+  border-color: transparent;
+  background: -webkit-linear-gradient(135deg, #7c5cff, #35c2ff);
+  background: linear-gradient(135deg, #7c5cff, #35c2ff);
+  color: #fff;
+  font-weight: 700;
+}
+
+.btn-primary:active {
+  background: #6a4ef0;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: #a9b5cf;
+}
+
+.btn-wide {
+  display: block;
+  width: 100%;
+}
+
+.quiz-intro {
+  margin: 0 0 14px;
+  color: #a9b5cf;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.best {
+  margin: 12px 0 0;
+  color: #7f8cae;
+  font-size: 14px;
+  text-align: center;
+  min-height: 18px;
+}
+
+.quiz-progress {
+  margin: 0 0 10px;
+  color: #93a0bd;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.quiz-question {
+  padding: 22px 18px;
+  margin-bottom: 14px;
+  background: #101728;
+  border: 1px solid #24345a;
+  border-radius: 16px;
+  text-align: center;
+  font-size: 26px;
+  font-weight: 700;
+  word-wrap: break-word;
+}
+
+.options {
+  margin-bottom: 8px;
+}
+
+.option {
+  display: block;
+  width: 100%;
+  min-height: 52px;
+  margin-bottom: 10px;
+  padding: 12px 16px;
+  border: 1px solid #2a3a5f;
+  border-radius: 12px;
+  background: #131a2b;
+  color: #dbe4f7;
+  font-size: 17px;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: rgba(124, 92, 255, 0.25);
+}
+
+.option.is-correct {
+  border-color: #2fbf7a;
+  background: #16301f;
+  color: #d8ffe8;
+}
+
+.option.is-wrong {
+  border-color: #e2564f;
+  background: #33181a;
+  color: #ffdcd9;
+}
+
+.feedback {
+  min-height: 22px;
+  margin: 4px 0 12px;
+  font-size: 15px;
+  color: #93a0bd;
+}
+
+.result-score {
+  margin: 8px 0 6px;
+  text-align: center;
+  font-size: 42px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.result-text {
+  margin: 0 0 18px;
+  text-align: center;
+  color: #a9b5cf;
+  font-size: 16px;
+}
+
+.foot {
+  margin-top: 28px;
+  color: #6c7a9c;
+  font-size: 13px;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.foot a {
+  color: #8ea2d6;
+}
+
+@media (max-width: 380px) {
+  .card-main {
+    font-size: 26px;
+  }
+  .quiz-question {
+    font-size: 22px;
+  }
+}

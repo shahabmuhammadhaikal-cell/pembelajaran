@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useApp } from "../state/useApp.js"
 import { useStudyItems } from "../hooks/useStudyItems.js"
 import { buildQuizChoices, pickWeightedIndex, srsKey, srsUrgency } from "../lib/srs.js"
+import { dailyChallenge } from "../lib/dailyChallenge.js"
 import { pickVoice, speak } from "../lib/speech.js"
 import { IconCheck, IconVolume, IconX } from "../components/Icons.jsx"
 
@@ -31,6 +32,11 @@ export default function Quiz() {
 
   const timerSecs = state.settings.timerSecs || 0
   const srsMap = state.progress.srs
+  const challenge = useMemo(
+    () => dailyChallenge(state.catalog.categories),
+    [state.catalog.categories]
+  )
+  const challengeActive = state.ui.challengeDay === challenge.day
 
   const reviewPool = useMemo(
     () =>
@@ -71,7 +77,14 @@ export default function Quiz() {
   // reset sesi saat kategori/filter berubah
   useEffect(() => {
     setSession(null)
-  }, [state.settings.category, state.settings.direction, state.ui.studyFilter, state.settings.search])
+  }, [state.settings.category, state.settings.direction, state.ui.studyFilter, state.settings.search, state.ui.challengeDay])
+
+  // Catat hasil tantangan harian sekali per sesi.
+  useEffect(() => {
+    if (!session || !session.finished || session.mode !== "challenge" || session.reported) return
+    actions.completeChallenge(session.correct, session.correct + session.wrong, challenge.day)
+    setSession(previous => (previous ? { ...previous, reported: true } : previous))
+  }, [session, actions, challenge.day])
 
   // hitung mundur berbasis deadline agar tidak ada nilai basi antar soal
   useEffect(() => {
@@ -217,7 +230,17 @@ export default function Quiz() {
           <button className="btn btn-soft" onClick={() => startSession("review")} disabled={!hasErrors}>
             Ulangi kesalahan ({reviewPool.length})
           </button>
+          {challengeActive ? (
+            <button className="btn btn-soft" onClick={() => startSession("challenge")} disabled={!items.length}>
+              🎯 Tantangan hari ini ({Math.min(QUESTION_COUNT, items.length || 0)} soal)
+            </button>
+          ) : null}
         </div>
+        {challengeActive ? (
+          <p className="note" style={{ marginTop: 14 }}>
+            Tantangan {challenge.categoryName}: benar minimal {challenge.target} dari {challenge.total} soal.
+          </p>
+        ) : null}
       </div>
     )
   }
@@ -229,7 +252,9 @@ export default function Quiz() {
       <div className="panel panel-pad view">
         <div className="section-head">
           <div>
-            <div className="section-title">Ringkasan sesi {session.mode === "review" ? "review" : "kuis"}</div>
+            <div className="section-title">
+              Ringkasan sesi {session.mode === "review" ? "review" : session.mode === "challenge" ? "tantangan" : "kuis"}
+            </div>
             <div className="section-sub">
               {accuracy >= 80
                 ? "Hebat! Pemahamanmu sangat bagus hari ini."
@@ -313,6 +338,7 @@ export default function Quiz() {
             Soal {session.index + 1}/{session.total}
           </span>
           {session.mode === "review" ? <span className="score-pill">Mode review</span> : null}
+          {session.mode === "challenge" ? <span className="score-pill">🎯 Tantangan</span> : null}
         </div>
         {timerSecs ? (
           <div className={`timer ${timeLeft <= 5 ? "low" : ""}`}>

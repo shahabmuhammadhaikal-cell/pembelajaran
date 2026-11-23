@@ -1,0 +1,22 @@
+[
+  { "en": "Eleven", "ar": "أحد عشر", "tr": "Aḥada ʿashara", "id": "sebelas" },
+  { "en": "Twelve", "ar": "اثنا عشر", "tr": "Ithnā ʿashara", "id": "dua belas" },
+  { "en": "Thirteen", "ar": "ثلاثة عشر", "tr": "Thalāthata ʿashara", "id": "tiga belas" },
+  { "en": "Fourteen", "ar": "أربعة عشر", "tr": "Arbaʿata ʿashara", "id": "empat belas" },
+  { "en": "Fifteen", "ar": "خمسة عشر", "tr": "Khamsata ʿashara", "id": "lima belas" },
+  { "en": "Sixteen", "ar": "ستة عشر", "tr": "Sittata ʿashara", "id": "enam belas" },
+  { "en": "Seventeen", "ar": "سبعة عشر", "tr": "Sabʿata ʿashara", "id": "tujuh belas" },
+  { "en": "Eighteen", "ar": "ثمانية عشر", "tr": "Thamāniyata ʿashara", "id": "delapan belas" },
+  { "en": "Nineteen", "ar": "تسعة عشر", "tr": "Tiṣʿata ʿashara", "id": "sembilan belas" },
+  { "en": "Twenty", "ar": "عشرون", "tr": "ʿIshrūn", "id": "dua puluh" },
+  { "en": "Thirty", "ar": "ثلاثون", "tr": "Thalāthūn", "id": "tiga puluh" },
+  { "en": "Forty", "ar": "أربعون", "tr": "Arbaʿūn", "id": "empat puluh" },
+  { "en": "Fifty", "ar": "خمسون", "tr": "Khamsūn", "id": "lima puluh" },
+  { "en": "Sixty", "ar": "ستون", "tr": "Sittūn", "id": "enam puluh" },
+  { "en": "Seventy", "ar": "سبعون", "tr": "Sabʿūn", "id": "tujuh puluh" },
+  { "en": "Eighty", "ar": "ثمانون", "tr": "Thamānūn", "id": "delapan puluh" },
+  { "en": "Ninety", "ar": "تسعون", "tr": "Tiṣʿūn", "id": "sembilan puluh" },
+  { "en": "One hundred", "ar": "مئة", "tr": "Miʾah", "id": "seratus" },
+  { "en": "Five hundred", "ar": "خمسمئة", "tr": "Khamsumiʾah", "id": "lima ratus" },
+  { "en": "One thousand", "ar": "ألف", "tr": "Alf", "id": "seribu" }
+]

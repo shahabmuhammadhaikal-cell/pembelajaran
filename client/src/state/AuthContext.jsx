@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
-import { firebaseConfigured, refreshCurrentUser, subscribeAuth } from "../lib/firebase.js"
+import { completeMagicLink, firebaseConfigured, refreshCurrentUser, subscribeAuth } from "../lib/firebase.js"
 
 export const AuthContext = createContext(null)
 
@@ -15,18 +15,25 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let alive = true
     let unsubscribe = () => {}
-    subscribeAuth(next => {
+
+    const start = async () => {
+      // Tautan email (magic link) diselesaikan dulu agar sesi langsung terbentuk.
+      await completeMagicLink().catch(() => {})
       if (!alive) return
-      setUser(next)
-      setReady(true)
-    })
-      .then(stop => {
-        if (alive) unsubscribe = stop || (() => {})
-        else if (stop) stop()
-      })
-      .catch(() => {
-        if (alive) setReady(true)
-      })
+      const stop = await subscribeAuth(next => {
+        if (!alive) return
+        setUser(next)
+        setReady(true)
+      }).catch(() => null)
+      if (!alive) {
+        if (stop) stop()
+        return
+      }
+      unsubscribe = stop || (() => {})
+      if (!stop) setReady(true)
+    }
+
+    start()
     return () => {
       alive = false
       unsubscribe()

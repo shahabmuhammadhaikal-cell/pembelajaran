@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#0b0f1a" />
+    <title>Pembelajar Ringan · Kartu &amp; Kuis</title>
+    <link rel="stylesheet" href="lite/lite.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="head">
+        <div class="brand">
+          <span class="brand-mark">ع</span>
+          <div>
+            <h1>Pembelajar Ringan</h1>
+            <p class="brand-sub">Kartu &amp; kuis · tanpa akun</p>
+          </div>
+        </div>
+      </header>
+
+      <section class="panel">
+        <label class="field" for="category">
+          <span class="field-label">Kategori</span>
+          <select id="category">
+            <option value="">Memuat…</option>
+          </select>
+        </label>
+
+        <div class="direction" id="direction">
+          <button type="button" class="dir-btn is-active" data-dir="en">Inggris → Arab</button>
+          <button type="button" class="dir-btn" data-dir="ar">Arab → Inggris</button>
+        </div>
+      </section>
+
+      <nav class="tabs" id="tabs">
+        <button type="button" class="tab is-active" data-view="cards">Kartu</button>
+        <button type="button" class="tab" data-view="quiz">Kuis</button>
+      </nav>
+
+      <p class="status" id="status">Memuat data…</p>
+
+      <section class="view" id="view-cards" hidden>
+        <div class="card" id="card" role="button" tabindex="0">
+          <p class="card-side" id="card-side">Inggris</p>
+          <p class="card-main" id="card-main">—</p>
+          <p class="card-sub" id="card-sub"></p>
+          <p class="card-hint" id="card-hint">Ketuk kartu untuk melihat arti</p>
+        </div>
+        <p class="counter" id="counter">0 / 0</p>
+        <div class="row">
+          <button type="button" class="btn" id="prev">Sebelumnya</button>
+          <button type="button" class="btn btn-primary" id="next">Berikutnya</button>
+        </div>
+        <div class="row">
+          <button type="button" class="btn btn-ghost" id="shuffle">Acak urutan</button>
+        </div>
+      </section>
+
+      <section class="view" id="view-quiz" hidden>
+        <div class="quiz-start" id="quiz-start">
+          <p class="quiz-intro">
+            10 soal pilihan ganda dari kategori ini. Ketuk jawaban yang benar.
+          </p>
+          <button type="button" class="btn btn-primary btn-wide" id="quiz-begin">
+            Mulai kuis
+          </button>
+          <p class="best" id="quiz-best"></p>
+        </div>
+
+        <div id="quiz-play" hidden>
+          <p class="quiz-progress" id="quiz-progress">Soal 1 / 10</p>
+          <div class="quiz-question" id="quiz-question" dir="ltr">—</div>
+          <div class="options" id="quiz-options"></div>
+          <p class="feedback" id="quiz-feedback"></p>
+          <button type="button" class="btn btn-primary btn-wide" id="quiz-next" hidden>
+            Lanjut
+          </button>
+        </div>
+
+        <div class="quiz-result" id="quiz-result" hidden>
+          <p class="result-score" id="result-score">0 / 10</p>
+          <p class="result-text" id="result-text"></p>
+          <button type="button" class="btn btn-primary btn-wide" id="quiz-again">
+            Ulangi kuis
+          </button>
+        </div>
+      </section>
+
+      <footer class="foot">
+        <p>Versi ringan untuk perangkat lama · data dari dataset statis aplikasi.</p>
+        <p><a href="./">Buka aplikasi lengkap</a></p>
+      </footer>
+    </div>
+
+    <script src="lite/lite.js"></script>
+  </body>
+</html>

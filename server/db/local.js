@@ -133,11 +133,36 @@ function createLocalStore({ rootDir, dataDir }) {
     const next = Object.assign({ uid: key }, all[key] || {}, { updated_at: Date.now() })
     if (patch.kids && typeof patch.kids === "object") next.kids = patch.kids
     if (patch.adult && typeof patch.adult === "object") next.adult = patch.adult
+    if (patch.profile && typeof patch.profile === "object") next.profile = patch.profile
+    if (patch.stats && typeof patch.stats === "object") next.stats = patch.stats
+    if (patch.role) next.role = String(patch.role).slice(0, 20)
     if (patch.email) next.email = String(patch.email).slice(0, 200)
+    if (patch.familyOwner !== undefined) {
+      if (patch.familyOwner) next.familyOwner = accountKey(patch.familyOwner)
+      else delete next.familyOwner
+    }
     all[key] = next
     await fsp.writeFile(path.join(dataDir, "accounts.json"), JSON.stringify(all, null, 2), "utf8")
     cache.clear()
     return next
+  }
+
+  async function listAccounts(limit = 100) {
+    const all = await readAccounts()
+    return Object.values(all)
+      .filter(account => account && typeof account === "object")
+      .slice(0, Math.max(1, limit))
+  }
+
+  async function findAccountByFamilyCode(code) {
+    const clean = String(code || "").trim().toUpperCase()
+    if (!clean) return null
+    const all = await readAccounts()
+    return (
+      Object.values(all).find(
+        account => account && account.profile && String(account.profile.familyCode || "") === clean
+      ) || null
+    )
   }
 
   async function deleteAccount(uid) {
@@ -166,6 +191,8 @@ function createLocalStore({ rootDir, dataDir }) {
     saveProgress,
     getAccount,
     saveAccount,
+    listAccounts,
+    findAccountByFamilyCode,
     deleteAccount,
     healthInfo
   }

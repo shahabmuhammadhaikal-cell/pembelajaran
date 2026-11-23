@@ -1,0 +1,22 @@
+[
+  { "en": "Spoon", "ar": "ملعقة", "tr": "Milʿaqah", "id": "sendok", "emoji": "🥄" },
+  { "en": "Fork", "ar": "شوكة", "tr": "Shawkah", "id": "garpu", "emoji": "🍴" },
+  { "en": "Knife", "ar": "سكين", "tr": "Sikkīn", "id": "pisau", "emoji": "🔪" },
+  { "en": "Plate", "ar": "طبق", "tr": "Ṭabaq", "id": "piring", "emoji": "🍽️" },
+  { "en": "Bowl", "ar": "وعاء", "tr": "Wiʿāʾ", "id": "mangkuk", "emoji": "🥣" },
+  { "en": "Cup", "ar": "كوب", "tr": "Kūb", "id": "cangkir", "emoji": "☕" },
+  { "en": "Glass", "ar": "كأس", "tr": "Kaʾs", "id": "gelas", "emoji": "🥛" },
+  { "en": "Pot", "ar": "قدر", "tr": "Qidr", "id": "panci", "emoji": "🍲" },
+  { "en": "Frying pan", "ar": "مقلاة", "tr": "Miqlāh", "id": "wajan", "emoji": "🍳" },
+  { "en": "Kettle", "ar": "غلاية", "tr": "Ghallāyah", "id": "ketel", "emoji": "🫖" },
+  { "en": "Stove", "ar": "موقد", "tr": "Mawqid", "id": "kompor" },
+  { "en": "Oven", "ar": "فرن", "tr": "Furn", "id": "oven" },
+  { "en": "Refrigerator", "ar": "ثلاجة", "tr": "Thallājah", "id": "kulkas" },
+  { "en": "Sink", "ar": "حوض", "tr": "Ḥawḍ", "id": "wastafel" },
+  { "en": "Ladle", "ar": "مغرفة", "tr": "Mighrafah", "id": "sendok sayur" },
+  { "en": "Cutting board", "ar": "لوح تقطيع", "tr": "Lawḥ Taqṭīʿ", "id": "talenan" },
+  { "en": "Strainer", "ar": "مصفاة", "tr": "Miṣfāh", "id": "saringan" },
+  { "en": "Blender", "ar": "خلاط", "tr": "Khallāṭ", "id": "blender" },
+  { "en": "Dish soap", "ar": "سائل غسيل الصحون", "tr": "Sāʾil Ghasīl aṣ-Ṣuḥūn", "id": "sabun cuci piring" },
+  { "en": "Trash bin", "ar": "سلة المهملات", "tr": "Sallat al-Muhmalāt", "id": "tempat sampah", "emoji": "🗑️" }
+]

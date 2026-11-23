@@ -6,7 +6,16 @@ import { currentAccountOwner, markAccountSynced } from "../lib/accountOwner.js"
 
 export const SyncContext = createContext(null)
 
-const EMPTY_SESSION = { uid: "", ready: false, switched: false, firstLogin: false, account: null, version: 0 }
+const EMPTY_SESSION = {
+  uid: "",
+  ready: false,
+  switched: false,
+  firstLogin: false,
+  account: null,
+  stats: null,
+  family: null,
+  version: 0
+}
 const SAVE_DEBOUNCE_MS = 2000
 const RETRY_GAP_MS = 15000
 const REFRESH_GAP_MS = 60000
@@ -68,9 +77,20 @@ export function SyncProvider({ children }) {
     try {
       const token = await currentIdToken()
       if (!token) throw new Error("Sesi login berakhir. Silakan masuk lagi.")
-      await saveAccountProgress(token, payload)
+      const saved = await saveAccountProgress(token, payload)
       // Akun berganti saat permintaan berjalan: jangan sentuh status sesi baru.
       if (uidRef.current !== runUid) return true
+      // Metadata akun (profil, role, statistik) ikut diperbarui tanpa menarik ulang
+      // seluruh progres, supaya antrean yang belum terkirim tidak terganggu.
+      setSession(previous =>
+        previous.ready && previous.uid === runUid
+          ? {
+              ...previous,
+              account: saved && saved.account ? saved.account : previous.account,
+              stats: saved && saved.stats ? saved.stats : previous.stats
+            }
+          : previous
+      )
       setError("")
       if (pending.current) {
         // Ada perubahan baru selama menyimpan: jangan bilang "Tersimpan" dulu.
@@ -155,6 +175,8 @@ export function SyncProvider({ children }) {
         switched: false,
         firstLogin: false,
         account: data.account || null,
+        stats: data.stats || null,
+        family: data.family || null,
         version: versionRef.current
       })
       return true
@@ -227,6 +249,8 @@ export function SyncProvider({ children }) {
           switched,
           firstLogin,
           account: data.account || null,
+          stats: data.stats || null,
+          family: data.family || null,
           version: versionRef.current
         })
         setError("")
@@ -240,7 +264,7 @@ export function SyncProvider({ children }) {
       } catch (err) {
         if (!alive || uidRef.current !== uid) return
         if (isAuthExpired(err)) signOutUser().catch(() => {})
-        setSession({ uid, ready: false, switched, firstLogin, account: null, version: 0 })
+        setSession({ uid, ready: false, switched, firstLogin, account: null, stats: null, family: null, version: 0 })
         setStatus("offline")
         setError(err && err.message ? err.message : "Tidak bisa menyambung ke server")
       } finally {

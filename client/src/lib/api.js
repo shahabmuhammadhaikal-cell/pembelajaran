@@ -131,6 +131,13 @@ export function updateSuggestionStatus(id, status, adminToken) {
   })
 }
 
+/** Versi akun: server menerima token Firebase milik akun dengan role admin. */
+export function updateSuggestionStatusAccount(id, status, token) {
+  return sendJson("POST", "word-suggestions-status", { id, status }, {
+    Authorization: `Bearer ${token || ""}`
+  })
+}
+
 export function fetchProgress(deviceId) {
   return getJson(`api/progress/${encodeURIComponent(deviceId)}`)
 }

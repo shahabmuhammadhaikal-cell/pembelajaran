@@ -165,6 +165,21 @@ function unionList(base, incoming, limit = 0) {
   return limit > 0 ? out.slice(0, limit) : out
 }
 
+function mergeChallenge(base, incoming) {
+  if (!incoming) return base || null
+  if (!base) return incoming
+  const baseDay = String(base.day || "")
+  const incomingDay = String(incoming.day || "")
+  if (baseDay !== incomingDay) return baseDay > incomingDay ? base : incoming
+  return {
+    ...base,
+    ...incoming,
+    correct: maxOf(base.correct, incoming.correct),
+    total: maxOf(base.total, incoming.total),
+    doneAt: maxOf(base.doneAt, incoming.doneAt)
+  }
+}
+
 function mergeAdultProgress(base, incoming) {
   if (!incoming || typeof incoming !== "object") return base || null
   if (!base || typeof base !== "object") return incoming
@@ -186,6 +201,7 @@ function mergeAdultProgress(base, incoming) {
     bestDaily: maxOf(base.bestDaily, incoming.bestDaily),
     bestStreak: maxOf(base.bestStreak, incoming.bestStreak),
     streak: maxOf(base.streak, incoming.streak),
+    dailyChallenge: mergeChallenge(base.dailyChallenge, incoming.dailyChallenge),
     resetAt: maxOf(base.resetAt, incoming.resetAt)
   }
 }
@@ -201,14 +217,27 @@ function mergeAdult(base, incoming) {
   }
 }
 
+function mergeProfile(baseValue, incomingValue) {
+  if (!incomingValue || typeof incomingValue !== "object") return baseValue || null
+  const base = objectOf(baseValue)
+  const incoming = objectOf(incomingValue)
+  const out = { ...base, ...incoming }
+  if (incoming.dailyChallenge !== undefined) {
+    out.dailyChallenge = mergeChallenge(base.dailyChallenge, incoming.dailyChallenge)
+  }
+  return out
+}
+
 function mergeAccount(existing, incoming) {
   const base = existing && typeof existing === "object" ? existing : {}
   const patch = incoming && typeof incoming === "object" ? incoming : {}
   const merged = {}
   const kids = mergeKidsDoc(base.kids, patch.kids)
   const adult = mergeAdult(base.adult, patch.adult)
+  const profile = mergeProfile(base.profile, patch.profile)
   if (kids) merged.kids = kids
   if (adult) merged.adult = adult
+  if (profile) merged.profile = profile
   return merged
 }
 
@@ -219,5 +248,6 @@ module.exports = {
   mergeAdult,
   mergeAdultProgress,
   mergeFavorites,
+  mergeProfile,
   normalizeKidsDoc
 }

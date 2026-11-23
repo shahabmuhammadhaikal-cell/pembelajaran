@@ -61,6 +61,42 @@ export async function requestDeletionTicket(token, payload) {
   return parse(res)
 }
 
+export async function generateFamilyCode(token) {
+  const res = await request(apiUrl("api/account/family/code"), {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return parse(res)
+}
+
+export async function joinFamily(token, code) {
+  const res = await request(apiUrl("api/account/family"), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({ code })
+  })
+  return parse(res)
+}
+
+export async function leaveFamily(token) {
+  const res = await request(apiUrl("api/account/family"), {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return parse(res)
+}
+
+export async function fetchLeaderboard(token) {
+  const res = await request(apiUrl("api/leaderboard"), {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    cache: "no-store"
+  })
+  return parse(res)
+}
+
 export async function deleteAccount(token, ticket) {
   const res = await request(apiUrl("api/account"), {
     method: "DELETE",

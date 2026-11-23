@@ -12,6 +12,8 @@ import Translate from "./views/Translate.jsx"
 import SettingsModal from "./views/SettingsModal.jsx"
 import SuggestionsModal from "./views/SuggestionsModal.jsx"
 import AccountModal from "./components/AccountModal.jsx"
+import AccountOnboarding from "./components/AccountOnboarding.jsx"
+import LeaderboardModal from "./components/LeaderboardModal.jsx"
 import { useApp } from "./state/useApp.js"
 
 const VIEWS = {
@@ -102,6 +104,8 @@ export default function App() {
       <SettingsModal />
       <SuggestionsModal />
       <AccountModal />
+      <AccountOnboarding />
+      <LeaderboardModal />
       <Toasts />
     </div>
   )

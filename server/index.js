@@ -11,8 +11,9 @@ const { parse } = require("csv-parse/sync")
 const googleTTS = require("google-tts-api")
 const { createStore } = require("./db")
 const { createLexiconCache } = require("./lib/lexicon")
-const { requireUser, authConfigured, deleteAuthUser } = require("./lib/accountAuth")
+const { requireUser, authConfigured, deleteAuthUser, userFromToken } = require("./lib/accountAuth")
 const { mergeAccount } = require("./lib/accountMerge")
+const { summarizeAccount } = require("./lib/accountStats")
 const { sanitizeAccountPatch } = require("./lib/accountPayload")
 const { verifyPassword, verifyGoogleIdToken } = require("./lib/accountReauth")
 const { createDeletionTickets } = require("./lib/deletionTicket")
@@ -31,6 +32,10 @@ const HOST = process.env.HOST || "0.0.0.0"
 const API_BASE_URL = process.env.API_BASE_URL || ""
 const ADMIN_USERNAME = String(process.env.ADMIN_USERNAME || "admin").trim() || "admin"
 const ADMIN_PASSWORD = String(process.env.ADMIN_PASSWORD || "").trim()
+const ADMIN_EMAILS = String(process.env.ADMIN_EMAILS || "")
+  .split(",")
+  .map(value => value.trim().toLowerCase())
+  .filter(Boolean)
 const CORS_ORIGINS = String(process.env.CORS_ORIGINS || "*")
   .split(",")
   .map(value => value.trim())
@@ -53,6 +58,7 @@ const ttsRate = new Map()
 const adminTokens = new Map()
 const accountWriteRate = new Map()
 const deletionAttempts = new Map()
+const familyAttempts = new Map()
 const deletionTickets = createDeletionTickets()
 
 /** Batasi percobaan verifikasi hapus akun: 5 kali per 15 menit per uid. */
@@ -66,6 +72,20 @@ function allowDeletionAttempt(uid) {
   }
   items.push(now)
   deletionAttempts.set(uid, items)
+  return true
+}
+
+/** Batasi tebakan kode keluarga: 10 percobaan per 15 menit per akun. */
+function allowFamilyJoin(uid) {
+  const now = Date.now()
+  if (familyAttempts.size > 5000) familyAttempts.clear()
+  const items = (familyAttempts.get(uid) || []).filter(ts => now - ts < 15 * 60_000)
+  if (items.length >= 10) {
+    familyAttempts.set(uid, items)
+    return false
+  }
+  items.push(now)
+  familyAttempts.set(uid, items)
   return true
 }
 
@@ -269,12 +289,32 @@ function isAdminAuthorized(req) {
   return true
 }
 
-function requireAdmin(req, res, next) {
-  if (!isAdminAuthorized(req)) {
-    sendError(res, 401, "Admin authorization required")
-    return
+/** Role akun: ADMIN_EMAILS adalah sumber utama; role tersimpan dipakai bila
+ * ADMIN_EMAILS belum diisi (mis. hasil pengaturan manual di Firestore). */
+function roleFor(email, account) {
+  const clean = String(email || "").trim().toLowerCase()
+  if (clean && ADMIN_EMAILS.includes(clean)) return "admin"
+  if (!ADMIN_EMAILS.length && account && account.role === "admin") return "admin"
+  return "user"
+}
+
+function familyCode() {
+  // Tanpa huruf/angka yang mudah tertukar (0/O, 1/I/L).
+  const alphabet = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
+  let code = ""
+  for (let index = 0; index < 6; index += 1) {
+    code += alphabet[crypto.randomInt(0, alphabet.length)]
   }
-  next()
+  return code
+}
+
+function publicAccount(account, role, kids) {
+  const source = account && typeof account === "object" ? account : {}
+  return {
+    ...source,
+    ...(kids !== undefined ? { kids } : {}),
+    role
+  }
 }
 
 function resolvePublicUrl(relativePath) {
@@ -292,6 +332,28 @@ async function createApp() {
   logEvent("store_ready", `kind=${storeInfo.storage}`)
 
   const app = express()
+
+  // Admin bisa memakai sesi admin lama (x-admin-token) atau akun Firebase
+  // yang emailnya terdaftar di ADMIN_EMAILS / punya role admin.
+  const requireAdmin = async (req, res, next) => {
+    if (isAdminAuthorized(req)) {
+      next()
+      return
+    }
+    try {
+      const header = String(req.headers.authorization || "")
+      const token = header.toLowerCase().startsWith("bearer ") ? header.slice(7).trim() : ""
+      const user = token ? await userFromToken(token) : null
+      if (user) {
+        const account = await store.getAccount(user.uid)
+        if (roleFor(user.email, account) === "admin") {
+          next()
+          return
+        }
+      }
+    } catch {}
+    sendError(res, 401, "Admin authorization required")
+  }
 
   app.use(cors({
     origin(origin, callback) {
@@ -436,8 +498,25 @@ async function createApp() {
   app.get("/api/account/progress", requireUser(), async (req, res) => {
     try {
       const account = await store.getAccount(req.user.uid)
+      const role = roleFor(req.user.email, account)
+      let kids = account ? account.kids : null
+      let family = null
+      if (account && account.familyOwner) {
+        const owner = await store.getAccount(account.familyOwner).catch(() => null)
+        if (owner) {
+          kids = owner.kids || null
+          family = {
+            joined: true,
+            owner: account.familyOwner,
+            ownerName: (owner.profile && owner.profile.name) || "Keluarga",
+            code: (owner.profile && owner.profile.familyCode) || ""
+          }
+        }
+      }
+      const view = publicAccount(account, role, kids)
+      const stats = summarizeAccount({ ...(account || {}), kids })
       res.set("Cache-Control", "private, no-store")
-      res.json({ ok: true, uid: req.user.uid, account })
+      res.json({ ok: true, uid: req.user.uid, role, account: view, stats, family })
     } catch (error) {
       logEvent("account_get_error", error.message)
       sendError(res, 500, "Failed to load account progress")
@@ -453,13 +532,39 @@ async function createApp() {
       }
       const patch = sanitizeAccountPatch(req.body)
       const existing = await store.getAccount(req.user.uid)
+
+      // Anggota keluarga menitipkan profil anak ke akun pemilik kode.
+      if (existing && existing.familyOwner && patch.kids) {
+        const owner = await store.getAccount(existing.familyOwner).catch(() => null)
+        if (owner) {
+          const mergedOwner = mergeAccount(owner, { kids: patch.kids })
+          await store.saveAccount(existing.familyOwner, {
+            ...mergedOwner,
+            email: owner.email
+          })
+          delete patch.kids
+        }
+      }
+
       const merged = mergeAccount(existing, patch)
+      if (existing && existing.familyOwner) delete merged.kids
+      const role = roleFor(req.user.email, existing)
+      const stats = summarizeAccount(merged)
       const account = await store.saveAccount(req.user.uid, {
         ...merged,
-        email: req.user.email
+        email: req.user.email,
+        role,
+        stats
       })
       res.set("Cache-Control", "private, no-store")
-      res.json({ ok: true, uid: req.user.uid, updated_at: account.updated_at || Date.now() })
+      res.json({
+        ok: true,
+        uid: req.user.uid,
+        role,
+        account: publicAccount(account, role),
+        stats,
+        updated_at: account.updated_at || Date.now()
+      })
     } catch (error) {
       if (error.status) {
         sendError(res, error.status, error.message)
@@ -483,6 +588,133 @@ async function createApp() {
   app.post("/api/account/deletion-ticket", requireUser(), accountDeletion.requestTicket)
 
   app.delete("/api/account", requireUser(), accountDeletion.deleteAccount)
+
+  // ---- Kode keluarga: berbagi profil Mode Anak antar akun ----
+  app.post("/api/account/family/code", requireUser(), async (req, res) => {
+    try {
+      const existing = (await store.getAccount(req.user.uid)) || {}
+      const profile = { ...(existing.profile || {}) }
+      if (!profile.familyCode) {
+        let code = familyCode()
+        for (let attempt = 0; attempt < 5; attempt += 1) {
+          const clash = await store.findAccountByFamilyCode(code).catch(() => null)
+          if (!clash) break
+          code = familyCode()
+        }
+        profile.familyCode = code
+      }
+      const merged = mergeAccount(existing, { profile })
+      await store.saveAccount(req.user.uid, { ...merged, email: req.user.email })
+      res.set("Cache-Control", "private, no-store")
+      res.json({ ok: true, code: profile.familyCode })
+    } catch (error) {
+      logEvent("family_code_error", error.message)
+      sendError(res, 500, "Gagal membuat kode keluarga")
+    }
+  })
+
+  app.post("/api/account/family", requireUser(), async (req, res) => {
+    try {
+      if (!allowFamilyJoin(req.user.uid)) {
+        res.set("Retry-After", "900")
+        sendError(res, 429, "Terlalu banyak percobaan kode keluarga. Coba lagi nanti.")
+        return
+      }
+      const code = String(req.body && req.body.code || "").trim().toUpperCase()
+      if (!/^[A-Z0-9]{4,10}$/.test(code)) {
+        sendError(res, 400, "Format kode keluarga belum benar")
+        return
+      }
+      const owner = await store.findAccountByFamilyCode(code)
+      if (!owner) {
+        sendError(res, 404, "Kode keluarga tidak ditemukan")
+        return
+      }
+      if (owner.uid === req.user.uid) {
+        sendError(res, 400, "Itu kode akun kamu sendiri")
+        return
+      }
+      if (owner.familyOwner) {
+        sendError(res, 400, "Akun pemilik kode itu sudah menjadi anggota keluarga lain")
+        return
+      }
+      await store.saveAccount(req.user.uid, { familyOwner: owner.uid, email: req.user.email })
+      res.json({
+        ok: true,
+        family: {
+          joined: true,
+          owner: owner.uid,
+          ownerName: (owner.profile && owner.profile.name) || "Keluarga",
+          code
+        }
+      })
+    } catch (error) {
+      logEvent("family_join_error", error.message)
+      sendError(res, 500, "Gagal bergabung ke keluarga")
+    }
+  })
+
+  app.delete("/api/account/family", requireUser(), async (req, res) => {
+    try {
+      await store.saveAccount(req.user.uid, { familyOwner: null, email: req.user.email })
+      res.json({ ok: true })
+    } catch (error) {
+      logEvent("family_leave_error", error.message)
+      sendError(res, 500, "Gagal keluar dari keluarga")
+    }
+  })
+
+  // ---- Papan peringkat (hanya akun yang ikut, tanpa email) ----
+  app.get("/api/leaderboard", async (req, res) => {
+    try {
+      const accounts = await store.listAccounts(120)
+      const rows = []
+      for (const account of Array.isArray(accounts) ? accounts : []) {
+        if (!account || !account.profile || account.profile.leaderboard !== true) continue
+        const stats = summarizeAccount(account)
+        rows.push({
+          uid: account.uid || "",
+          name: account.profile.name || "Pembelajar",
+          avatar: account.profile.avatar || "🙂",
+          points: stats.points,
+          stars: stats.stars,
+          mastered: stats.mastered,
+          streak: stats.streak,
+          level: stats.level,
+          levelTitle: stats.levelTitle
+        })
+      }
+      rows.sort((a, b) => b.points - a.points || b.stars - a.stars)
+      const top = rows.slice(0, 20)
+      let viewer = ""
+      const header = String(req.headers.authorization || "")
+      const token = header.toLowerCase().startsWith("bearer ") ? header.slice(7).trim() : ""
+      if (token) {
+        const user = await userFromToken(token).catch(() => null)
+        viewer = user ? user.uid : ""
+      }
+      res.set("Cache-Control", "private, no-store")
+      res.json({
+        ok: true,
+        total: rows.length,
+        rows: top.map((row, index) => ({
+          rank: index + 1,
+          name: row.name,
+          avatar: row.avatar,
+          points: row.points,
+          stars: row.stars,
+          mastered: row.mastered,
+          streak: row.streak,
+          level: row.level,
+          levelTitle: row.levelTitle,
+          isYou: Boolean(viewer) && row.uid === viewer
+        }))
+      })
+    } catch (error) {
+      logEvent("leaderboard_error", error.message)
+      sendError(res, 500, "Gagal memuat papan peringkat")
+    }
+  })
 
   app.get("/ai/status", async (req, res) => {
     try {

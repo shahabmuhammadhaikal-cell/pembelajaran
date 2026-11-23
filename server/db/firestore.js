@@ -178,10 +178,46 @@ function createFirestoreStore({ env = process.env, rootDir, dataDir } = {}) {
     if (patch && typeof patch === "object") {
       if (patch.kids && typeof patch.kids === "object") data.kids = patch.kids
       if (patch.adult && typeof patch.adult === "object") data.adult = patch.adult
+      if (patch.profile && typeof patch.profile === "object") data.profile = patch.profile
+      if (patch.stats && typeof patch.stats === "object") data.stats = patch.stats
+      if (patch.role) data.role = String(patch.role).slice(0, 20)
       if (patch.email) data.email = String(patch.email).slice(0, 200)
+      if (patch.familyOwner !== undefined) {
+        data.familyOwner = patch.familyOwner
+          ? String(patch.familyOwner).replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 128)
+          : admin.firestore.FieldValue.delete()
+      }
     }
     await db.collection(COLLECTIONS.users).doc(key).set(data, { merge: true })
     return data
+  }
+
+  /** Akun untuk papan peringkat: hanya yang punya stats.points. */
+  async function listAccounts(limit = 100) {
+    const safeLimit = Math.max(1, Math.min(200, Number(limit) || 100))
+    try {
+      const snapshot = await db
+        .collection(COLLECTIONS.users)
+        .orderBy("stats.points", "desc")
+        .limit(safeLimit)
+        .get()
+      return snapshot.docs.map(doc => doc.data())
+    } catch {
+      const snapshot = await db.collection(COLLECTIONS.users).limit(safeLimit).get()
+      return snapshot.docs.map(doc => doc.data())
+    }
+  }
+
+  async function findAccountByFamilyCode(code) {
+    const clean = String(code || "").trim().toUpperCase()
+    if (!/^[A-Z0-9]{4,10}$/.test(clean)) return null
+    const snapshot = await db
+      .collection(COLLECTIONS.users)
+      .where("profile.familyCode", "==", clean)
+      .limit(1)
+      .get()
+    if (snapshot.empty) return null
+    return snapshot.docs[0].data()
   }
 
   async function deleteAccount(uid) {
@@ -210,6 +246,8 @@ function createFirestoreStore({ env = process.env, rootDir, dataDir } = {}) {
     saveProgress,
     getAccount,
     saveAccount,
+    listAccounts,
+    findAccountByFamilyCode,
     deleteAccount,
     healthInfo
   }

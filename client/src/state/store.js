@@ -37,7 +37,10 @@ export const initialState = {
     phrasesPage: 0,
     settingsOpen: false,
     suggestionsOpen: false,
-    accountOpen: false
+    accountOpen: false,
+    onboardingOpen: false,
+    leaderboardOpen: false,
+    challengeDay: ""
   },
   lexicon: { loaded: false, loading: false, error: null, stats: null },
   server: { checked: false, ok: null, storage: "", version: 0 },

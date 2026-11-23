@@ -1,13 +1,21 @@
 import { useApp } from "../state/useApp.js"
 import { useAuth } from "../state/AuthContext.jsx"
 import { useSync } from "../state/SyncContext.jsx"
+import { accountDisplayName, accountInitial } from "../lib/accountLevel.js"
+import { categoryGroups } from "../lib/categoryGroups.js"
 import { IconBulb, IconMoon, IconSearch, IconSettings, IconSun, IconUser } from "./Icons.jsx"
 
 export default function Header() {
   const { state, actions } = useApp()
   const { user } = useAuth()
-  const { status: syncStatus, error: syncError, lastSaved, retry } = useSync()
+  const { status: syncStatus, error: syncError, lastSaved, retry, session } = useSync()
   const { settings, catalog, ui } = state
+  const profile = session.account && session.account.profile
+  const stats = session.stats
+  const role = session.account && session.account.role
+  const displayName = accountDisplayName(profile, user && user.email)
+  const avatar = (profile && profile.avatar) || accountInitial(profile, user && user.email)
+  const levelLabel = stats ? `Lv ${stats.level} · ${stats.levelTitle}` : "Akun"
   const syncFailed = syncStatus === "offline" || syncStatus === "error"
   const syncLabel = syncFailed
     ? "Gagal"
@@ -67,11 +75,15 @@ export default function Header() {
             >
               {!catalog.loaded ? <option value="__loading">Memuat…</option> : null}
               <option value="__all">Semua kategori</option>
-              {catalog.categories.map(category => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                  {category.count ? ` (${category.count})` : ""}
-                </option>
+              {categoryGroups(catalog.categories).map(group => (
+                <optgroup key={group.title} label={group.title}>
+                  {group.items.map(category => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                      {category.count ? ` (${category.count})` : ""}
+                    </option>
+                  ))}
+                </optgroup>
               ))}
             </select>
           </label>
@@ -113,15 +125,33 @@ export default function Header() {
             </div>
           ) : null}
 
-          <button
-            className={`icon-btn account-btn ${ui.accountOpen ? "active" : ""}`}
-            onClick={() => actions.setUi({ accountOpen: !ui.accountOpen })}
-            aria-label={user ? `Akun ${user.email || ""}` : "Masuk atau daftar"}
-            title={user ? user.email || "Akun" : "Masuk untuk menyimpan skor"}
-          >
-            <IconUser />
-            {user ? <span className="account-dot" aria-hidden /> : null}
-          </button>
+          {user ? (
+            <button
+              className={`profile-chip ${ui.accountOpen ? "active" : ""}`}
+              onClick={() => actions.setUi({ accountOpen: !ui.accountOpen })}
+              aria-label={`Akun ${displayName}`}
+              title={`${displayName} · ${levelLabel}${role === "admin" ? " · Admin" : ""}`}
+            >
+              <span className="profile-avatar" aria-hidden>{avatar}</span>
+              <span className="profile-copy">
+                <span className="profile-name">{displayName}</span>
+                <span className="profile-meta">
+                  {levelLabel}
+                  {stats && stats.streak ? ` · 🔥 ${stats.streak}` : ""}
+                  {role === "admin" ? <span className="role-badge">Admin</span> : null}
+                </span>
+              </span>
+            </button>
+          ) : (
+            <button
+              className={`icon-btn account-btn ${ui.accountOpen ? "active" : ""}`}
+              onClick={() => actions.setUi({ accountOpen: !ui.accountOpen })}
+              aria-label="Masuk atau daftar"
+              title="Masuk untuk menyimpan skor"
+            >
+              <IconUser />
+            </button>
+          )}
 
           <button
             className={`icon-btn ${ui.suggestionsOpen ? "active" : ""}`}

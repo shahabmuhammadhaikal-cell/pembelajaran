@@ -129,6 +129,56 @@ export async function reauthenticateWithGoogle() {
   }
 }
 
+const MAGIC_EMAIL_KEY = "pembelajar_magic_email"
+
+/** Kirim tautan masuk tanpa password ke email pengguna. */
+export async function sendMagicLink(email) {
+  const auth = await getAuthInstance()
+  if (!auth) throw new Error("Login belum dikonfigurasi")
+  const { authMod } = await loadSdk()
+  const clean = String(email || "").trim()
+  await authMod.sendSignInLinkToEmail(auth, clean, {
+    url: `${window.location.origin}${window.location.pathname}?login=email`,
+    handleCodeInApp: true
+  })
+  try {
+    localStorage.setItem(MAGIC_EMAIL_KEY, clean)
+  } catch {
+    /* localStorage diblokir: pengguna akan ditanya emailnya */
+  }
+}
+
+/** Selesaikan login tautan email bila URL saat ini membawa kode Firebase. */
+export async function completeMagicLink() {
+  if (typeof window === "undefined") return null
+  const auth = await getAuthInstance()
+  if (!auth) return null
+  const { authMod } = await loadSdk()
+  const href = window.location.href
+  if (!authMod.isSignInWithEmailLink(auth, href)) return null
+
+  let email = ""
+  try {
+    email = localStorage.getItem(MAGIC_EMAIL_KEY) || ""
+  } catch {
+    email = ""
+  }
+  if (!email) email = String(window.prompt("Konfirmasi email untuk masuk:") || "").trim()
+  if (!email) return null
+
+  const result = await authMod.signInWithEmailLink(auth, email, href)
+  try {
+    localStorage.removeItem(MAGIC_EMAIL_KEY)
+  } catch {}
+  try {
+    const url = new URL(window.location.href)
+    ;["login", "oobCode", "apiKey", "mode", "continueUrl", "lang"].forEach(key => url.searchParams.delete(key))
+    url.hash = ""
+    window.history.replaceState({}, document.title, url.toString())
+  } catch {}
+  return result
+}
+
 const AUTH_MESSAGES = {
   "auth/invalid-email": "Format email belum benar.",
   "auth/missing-password": "Password belum diisi.",
@@ -153,6 +203,10 @@ const AUTH_MESSAGES = {
   "auth/credential-already-in-use": "Akun Google itu sudah terhubung ke akun lain.",
   "auth/provider-already-linked": "Akun Google sudah terhubung.",
   "auth/requires-recent-login": "Silakan keluar lalu masuk lagi sebelum melakukan aksi ini.",
+  "auth/invalid-action-code": "Tautan email sudah dipakai atau tidak valid. Minta tautan baru.",
+  "auth/expired-action-code": "Tautan email sudah kedaluwarsa. Minta tautan baru.",
+  "auth/missing-email": "Email untuk tautan masuk belum diisi.",
+  "auth/quota-exceeded": "Kuota pengiriman email habis. Coba beberapa saat lagi.",
   "auth/user-mismatch": "Akun yang dipakai untuk verifikasi berbeda dengan akun yang sedang masuk.",
   "reauth_unconfigured": "Verifikasi password belum diaktifkan di server (FIREBASE_WEB_API_KEY).",
   "google_reauth_unconfigured": "Verifikasi Google belum diaktifkan di server (GOOGLE_OAUTH_CLIENT_ID).",

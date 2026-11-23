@@ -46,6 +46,20 @@ function requireUser(env = process.env) {
   }
 }
 
+/** Verifikasi token login dan kembalikan identitas user, atau null. */
+async function userFromToken(token, env = process.env) {
+  const value = String(token || "").trim()
+  if (!value) return null
+  const auth = getAuth(env)
+  if (!auth) return null
+  try {
+    const decoded = await auth.verifyIdToken(value)
+    return { uid: decoded.uid, email: decoded.email || "" }
+  } catch {
+    return null
+  }
+}
+
 async function deleteAuthUser(uid) {
   const auth = getAuth()
   if (!auth) {
@@ -60,4 +74,4 @@ async function deleteAuthUser(uid) {
   }
 }
 
-module.exports = { requireUser, authConfigured, deleteAuthUser }
+module.exports = { requireUser, authConfigured, deleteAuthUser, userFromToken, getAuth }

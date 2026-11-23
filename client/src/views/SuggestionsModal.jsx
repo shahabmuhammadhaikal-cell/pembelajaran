@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react"
 import Modal from "../components/Modal.jsx"
 import { useApp } from "../state/useApp.js"
+import { useSync } from "../state/SyncContext.jsx"
 import * as api from "../lib/api.js"
 import { getAdminToken } from "../lib/storage.js"
+import { currentIdToken } from "../lib/firebase.js"
 import { aiRequestOptions } from "../lib/aiConfig.js"
 import { IconSend, IconSparkles } from "../components/Icons.jsx"
 
@@ -18,6 +20,7 @@ function formatTime(ts) {
 
 export default function SuggestionsModal() {
   const { state, actions } = useApp()
+  const { session } = useSync()
   const open = state.ui.suggestionsOpen
   const [form, setForm] = useState(EMPTY_FORM)
   const [items, setItems] = useState([])
@@ -25,7 +28,8 @@ export default function SuggestionsModal() {
   const [submitting, setSubmitting] = useState(false)
   const [drafting, setDrafting] = useState(false)
   const [error, setError] = useState("")
-  const isAdmin = Boolean(getAdminToken())
+  const accountRole = session.account && session.account.role
+  const isAdmin = accountRole === "admin" || Boolean(getAdminToken())
 
   const load = async () => {
     setLoading(true)
@@ -94,7 +98,13 @@ export default function SuggestionsModal() {
 
   const updateStatus = async (id, status) => {
     try {
-      await api.updateSuggestionStatus(id, status, getAdminToken())
+      const token = getAdminToken()
+      if (token) {
+        await api.updateSuggestionStatus(id, status, token)
+      } else {
+        const firebaseToken = await currentIdToken()
+        await api.updateSuggestionStatusAccount(id, status, firebaseToken)
+      }
       load()
       actions.pushToast("Status diperbarui", "success")
     } catch (err) {
