@@ -177,7 +177,7 @@ function createLocalStore({ rootDir, dataDir }) {
   }
 
   function healthInfo() {
-    return { storage: "json", dataDir, exists: fs.existsSync(dataDir) }
+    return { storage: "json", dataDir, exists: fs.existsSync(dataDir), contentSource: "assets-json" }
   }
 
   return {

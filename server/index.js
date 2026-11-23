@@ -329,7 +329,10 @@ async function createApp() {
   const store = await createStore()
   const lexiconCache = createLexiconCache(store)
   const storeInfo = store.healthInfo()
-  logEvent("store_ready", `kind=${storeInfo.storage}`)
+  logEvent(
+    "store_ready",
+    `kind=${storeInfo.storage}${storeInfo.contentSource ? ` content=${storeInfo.contentSource}` : ""}`
+  )
 
   const app = express()
 
