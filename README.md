@@ -102,7 +102,7 @@ Karena Hosting tidak mem-proxy `/api` ke server lain, build hosted wajib memakai
    - `ADMIN_USERNAME` / `ADMIN_PASSWORD` — untuk login admin (upload, status saran)
    - `AI_BASE_URL` / `AI_MODEL` / `AI_API_KEY` — opsional, untuk fitur AI (lihat bagian berikut)
 
-Health check: `GET /api/health` — balik `{"ok":true,"storage":"firestore|json"}`.
+Health check: `GET /api/health` — balik `{"ok":true,"storage":"firestore|json"}` plus `store.contentSource` dan `store.catalogSeeded`. Sesudah deploy pertama, cek keduanya seperti dijelaskan pada [3. Firebase Firestore](#3-firebase-firestore-database-sementara).
 
 ### 2a. Bantuan AI (Ollama atau OpenAI-compatible)
 
@@ -206,6 +206,22 @@ FIREBASE_SERVICE_ACCOUNT='{...json...}' node scripts/seed-firestore.js --dry-run
 FIREBASE_SERVICE_ACCOUNT='{...json...}' node scripts/seed-firestore.js             # tulis
 ```
 
+4. Restart service, lalu pastikan materi terbaca dari Firestore:
+
+```bash
+curl -s https://pembelajaran-api.onrender.com/api/health
+```
+
+Yang perlu dilihat di respons:
+
+| Field | Nilai | Arti |
+|---|---|---|
+| `storage` | `firestore` | kredensial Firebase terbaca |
+| `store.contentSource` | `firestore` | katalog dan entri dari Firestore (normal) |
+| `store.contentSource` | `assets-json` | Firestore terhubung tetapi katalog kosong — jalankan seed lalu restart |
+| `store.catalogSeeded` | `true` / `false` | ringkas dari `contentSource`; hanya muncul saat Firestore aktif |
+| `store.warning` | teks | hanya ada saat fallback aktif; berisi perintah seed |
+
 Skema Firestore:
 
 | Collection | Isi |
@@ -216,7 +232,9 @@ Skema Firestore:
 | `word_suggestions/{id}` | saran kata |
 | `progress/{deviceId}` | `{ payload, updated_at }` — progres belajar per perangkat |
 
-> Tanpa seed: backend lewat JSON lokal tetap menyajikan seluruh kategori, jadi aplikasi langsung dipakai sebelum Firestore di-seed.
+> **Deploy baru tampil kosong?** Cek `/api/health` lebih dulu, jangan menebak dari tampilan. Bila `storage` = `firestore` tetapi `store.contentSource` = `assets-json` (dan `store.catalogSeeded` = `false`), kredensial sudah benar tetapi katalog Firestore belum di-seed: aplikasi sengaja memakai `assets/data` agar tidak blank, sementara akun, progres, dan saran kata tetap disimpan di Firestore. Log startup juga menulis `store_ready: kind=firestore content=assets-json` beserta peringatan berisi perintah seed. Jalankan langkah seed di atas lalu restart; `/api/health` harus berubah menjadi `store.contentSource: "firestore"` dan `store.catalogSeeded: true`.
+>
+> Tanpa kredensial Firebase sama sekali (`storage` = `json`), backend memakai JSON lokal dan tetap menyajikan seluruh kategori.
 
 ## API
 
