@@ -10,6 +10,8 @@
  *   meta/catalog                 -> ringkasan kategori (dibuat oleh seed)
  */
 
+const { writeContent } = require("./seedContent")
+
 function isFirestoreConfigured(env = process.env) {
   if (env.FIRESTORE_EMULATOR_HOST) return true
   if (env.FIREBASE_SERVICE_ACCOUNT || env.FIREBASE_SERVICE_ACCOUNT_JSON) return true
@@ -227,6 +229,18 @@ function createFirestoreStore({ env = process.env, rootDir, dataDir } = {}) {
     return true
   }
 
+  async function getSeedState() {
+    const doc = await db.collection(COLLECTIONS.meta).doc("seedState").get()
+    return doc.exists ? doc.data() : null
+  }
+
+  /** Tulis konten dari assets/data ke Firestore; cache dikosongkan agar data baru terbaca. */
+  async function seedContent(data, options) {
+    const result = await writeContent(db, data, options)
+    cache.clear()
+    return result
+  }
+
   function healthInfo() {
     return {
       storage: "firestore",
@@ -242,6 +256,8 @@ function createFirestoreStore({ env = process.env, rootDir, dataDir } = {}) {
     getAllEntries,
     listSuggestions,
     saveSuggestions,
+    getSeedState,
+    seedContent,
     getProgress,
     saveProgress,
     getAccount,

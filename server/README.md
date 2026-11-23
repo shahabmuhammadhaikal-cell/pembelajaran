@@ -17,6 +17,8 @@ Default port: `8020`
 - `PORT`: port server Express
 - `HOST`: host bind, default `0.0.0.0`
 - `API_BASE_URL`: base URL publik untuk respons seperti upload image
+- `STORAGE`: `json` memaksa store JSON lokal walau kredensial Firebase ada
+- `AUTO_SEED`: set `0` untuk mematikan pengisian Firestore otomatis saat katalog kosong (default aktif)
 - `CORS_ORIGINS`: daftar origin dipisah koma, default `*`
 - `ADMIN_USERNAME`: username login admin backend
 - `ADMIN_PASSWORD`: password login admin backend
