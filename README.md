@@ -226,6 +226,8 @@ Yang perlu dilihat di respons:
 
 | Field | Nilai | Arti |
 |---|---|---|
+| `version` | `3` | versi build backend; build lama menampilkan `2` |
+| `commit` | 7 karakter | commit yang di-deploy (dari `RENDER_GIT_COMMIT`); kosong di lokal |
 | `storage` | `firestore` | kredensial Firebase terbaca |
 | `store.contentSource` | `firestore` | katalog dan entri dari Firestore (normal) |
 | `store.contentSource` | `assets-json` | Firestore terhubung tetapi katalog kosong — jalankan seed lalu restart |

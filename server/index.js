@@ -435,7 +435,8 @@ async function createApp() {
     res.json({
       ok: true,
       service: "pembelajaran-backend",
-      version: 2,
+      version: 3,
+      commit: String(process.env.RENDER_GIT_COMMIT || "").slice(0, 7),
       port: PORT,
       storage: storeHealth.storage,
       store: storeHealth,
