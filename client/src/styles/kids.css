@@ -402,6 +402,37 @@
 }
 
 /* ---------- topik ---------- */
+.kid-topic-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.kid-topic-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding: 0 4px;
+}
+
+.kid-topic-group-head h4 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14.5px;
+  font-weight: 800;
+  color: var(--kid-ink);
+}
+
+.kid-topic-group-count {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--kid-muted);
+  letter-spacing: 0.02em;
+}
+
 .kid-topics {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(146px, 1fr));

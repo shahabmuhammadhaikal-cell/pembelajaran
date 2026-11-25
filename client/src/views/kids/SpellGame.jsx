@@ -187,6 +187,10 @@ export default function SpellGame({ settings, onBack, onStar, onWin }) {
         </span>
       </div>
 
+      <div className="kid-bar kid-bar-game">
+        <span style={{ width: `${((round + (solved ? 1 : 0)) / rounds.length) * 100}%` }} />
+      </div>
+
       <div className="kid-spell-card">
         <div className="kid-spell-head">
           <span className="kid-spell-emoji" aria-hidden>

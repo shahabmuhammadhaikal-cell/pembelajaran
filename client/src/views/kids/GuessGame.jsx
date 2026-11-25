@@ -137,6 +137,10 @@ export default function GuessGame({ settings, onBack, onStar, onWin }) {
         </span>
       </div>
 
+      <div className="kid-bar kid-bar-game">
+        <span style={{ width: `${((round + (solved ? 1 : 0)) / rounds.length) * 100}%` }} />
+      </div>
+
       <div className="kid-guess-stage">
         <div className="kid-guess-art" aria-hidden>
           {current.target.emoji}

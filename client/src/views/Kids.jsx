@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   KID_TOPICS,
+  KID_TOPIC_GROUPS,
   TOPIC_MAP,
   KID_STICKERS,
   KID_STAR_MILESTONES,
@@ -351,6 +352,22 @@ export default function Kids() {
     [kids.lastTopic, kids.topicsDone]
   )
 
+  const topicGroups = useMemo(() => {
+    const placed = new Set()
+    const groups = KID_TOPIC_GROUPS.map(group => {
+      const topics = group.ids.map(id => TOPIC_MAP[id]).filter(Boolean)
+      topics.forEach(topic => placed.add(topic.id))
+      return { ...group, topics }
+    })
+    const rest = KID_TOPICS.filter(topic => !placed.has(topic.id))
+    if (rest.length) groups.push({ id: "lainnya", emoji: "✨", title: "Lainnya", topics: rest })
+    return groups.filter(group => group.topics.length)
+  }, [])
+  const totalWords = useMemo(
+    () => KID_TOPICS.reduce((sum, topic) => sum + topic.items.length, 0),
+    []
+  )
+
   const doneTopics = Object.keys(kids.topicsDone).length
   const stickerCount = Object.keys(kids.stickers).length
   const readCount = Object.keys(kids.stories).length
@@ -680,42 +697,56 @@ export default function Kids() {
       <section className="kid-section">
         <div className="kid-section-head">
           <h3>Pilih topik belajar</h3>
-          <span className="kid-section-sub">{KID_TOPICS.length} topik bergambar</span>
+          <span className="kid-section-sub">
+            {KID_TOPICS.length} topik · {totalWords} kata bergambar
+          </span>
         </div>
-        <div className="kid-topics">
-          {KID_TOPICS.map(topic => {
-            const learned = topic.items.filter(entry => kids.learned[entry.key]).length
-            const percent = Math.round((learned / topic.items.length) * 100)
-            const finished = !!kids.topicsDone[topic.id]
-            return (
-              <button
-                key={topic.id}
-                className={`kid-topic ${finished ? "done" : ""}`}
-                style={{ "--kid-accent": topic.color }}
-                onClick={() => openTopic(topic.id)}
-              >
-                <span className="kid-topic-emoji" aria-hidden>
-                  {topic.emoji}
-                </span>
-                <span className="kid-topic-name">
-                  {topic.label}
-                  {finished ? (
-                    <span className="kid-topic-done" aria-label="selesai">
-                      {" "}
-                      ✓
-                    </span>
-                  ) : null}
-                </span>
-                <span className="kid-topic-blurb">{topic.blurb}</span>
-                <span className="kid-topic-bar">
-                  <span style={{ width: `${percent}%` }} />
-                </span>
-                <span className="kid-topic-meta">
-                  {learned}/{topic.items.length} kata
-                </span>
-              </button>
-            )
-          })}
+        <div className="kid-topic-groups">
+          {topicGroups.map(group => (
+            <section key={group.id} className="kid-topic-group">
+              <div className="kid-topic-group-head">
+                <h4>
+                  <span aria-hidden>{group.emoji}</span> {group.title}
+                </h4>
+                <span className="kid-topic-group-count">{group.topics.length} topik</span>
+              </div>
+              <div className="kid-topics">
+                {group.topics.map(topic => {
+                  const learned = topic.items.filter(entry => kids.learned[entry.key]).length
+                  const percent = Math.round((learned / topic.items.length) * 100)
+                  const finished = !!kids.topicsDone[topic.id]
+                  return (
+                    <button
+                      key={topic.id}
+                      className={`kid-topic ${finished ? "done" : ""}`}
+                      style={{ "--kid-accent": topic.color }}
+                      onClick={() => openTopic(topic.id)}
+                    >
+                      <span className="kid-topic-emoji" aria-hidden>
+                        {topic.emoji}
+                      </span>
+                      <span className="kid-topic-name">
+                        {topic.label}
+                        {finished ? (
+                          <span className="kid-topic-done" aria-label="selesai">
+                            {" "}
+                            ✓
+                          </span>
+                        ) : null}
+                      </span>
+                      <span className="kid-topic-blurb">{topic.blurb}</span>
+                      <span className="kid-topic-bar">
+                        <span style={{ width: `${percent}%` }} />
+                      </span>
+                      <span className="kid-topic-meta">
+                        {learned}/{topic.items.length} kata
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            </section>
+          ))}
         </div>
       </section>
 

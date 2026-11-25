@@ -122,6 +122,10 @@ export default function MatchGame({ settings, onBack, onStar, onWin }) {
         </button>
       </div>
 
+      <div className="kid-bar kid-bar-game">
+        <span style={{ width: `${(matched.length / deck.length) * 100}%` }} />
+      </div>
+
       <div className="kid-match-info">
         <span className="kid-score-pill">🧩 {found}/{PAIRS}</span>
         <span className="kid-score-pill">👣 {moves} langkah</span>

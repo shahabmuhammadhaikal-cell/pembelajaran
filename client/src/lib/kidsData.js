@@ -121,7 +121,13 @@ export const KID_TOPICS = [
       item("mouse", "🐭", "Mouse", "فَأْر", "Faʾr", "Tikus"),
       item("bear", "🐻", "Bear", "دُبّ", "Dubb", "Beruang"),
       item("giraffe", "🦒", "Giraffe", "زَرَافَة", "Zarāfa", "Jerapah"),
-      item("turtle", "🐢", "Turtle", "سُلَحْفَاة", "Sulaḥfāh", "Kura-kura")
+      item("turtle", "🐢", "Turtle", "سُلَحْفَاة", "Sulaḥfāh", "Kura-kura"),
+      item("camel", "🐪", "Camel", "جَمَل", "Jamal", "Unta"),
+      item("deer", "🦌", "Deer", "غَزَال", "Ghazāl", "Rusa"),
+      item("fox", "🦊", "Fox", "ثَعْلَب", "Thaʿlab", "Rubah"),
+      item("wolf", "🐺", "Wolf", "ذِئْب", "Dhiʾb", "Serigala"),
+      item("tiger", "🐯", "Tiger", "نَمِر", "Namir", "Harimau"),
+      item("panda", "🐼", "Panda", "بَانْدَا", "Bāndā", "Panda")
     ]
   },
   {
@@ -142,7 +148,12 @@ export const KID_TOPICS = [
       item("cherry", "🍒", "Cherry", "كَرَز", "Karaz", "Ceri"),
       item("lemon", "🍋", "Lemon", "لَيْمُون", "Laymūn", "Lemon"),
       item("peach", "🍑", "Peach", "خَوْخ", "Khawkh", "Persik"),
-      item("pear", "🍐", "Pear", "كُمَّثْرَى", "Kummathrā", "Pir")
+      item("pear", "🍐", "Pear", "كُمَّثْرَى", "Kummathrā", "Pir"),
+      item("coconut", "🥥", "Coconut", "جَوْز هِنْد", "Jawz hind", "Kelapa"),
+      item("avocado", "🥑", "Avocado", "أَفُوكَادُو", "Afūkādū", "Alpukat"),
+      item("kiwi", "🥝", "Kiwi", "كِيوِي", "Kīwī", "Kiwi"),
+      item("melon", "🍈", "Melon", "شَمَّام", "Shammām", "Melon"),
+      item("blueberry", "🫐", "Blueberry", "عِنَب أَزْرَق", "ʿInab azraq", "Blueberry")
     ]
   },
   {
@@ -161,7 +172,12 @@ export const KID_TOPICS = [
       item("son", "🧒", "Son", "اِبْن", "Ibn", "Anak laki-laki"),
       item("daughter", "👶", "Daughter", "بِنْت", "Bint", "Anak perempuan"),
       item("uncle", "🧔", "Uncle", "عَمّ", "ʿAmm", "Paman"),
-      item("aunt", "👩‍🦱", "Aunt", "خَالَة", "Khāla", "Bibi")
+      item("aunt", "👩‍🦱", "Aunt", "خَالَة", "Khāla", "Bibi"),
+      item("friend", "🧑‍🤝‍🧑", "Friend", "صَدِيق", "Ṣadīq", "Teman"),
+      item("baby", "🍼", "Baby", "طِفْل", "Ṭifl", "Bayi"),
+      item("husband", "🤵", "Husband", "زَوْج", "Zawj", "Suami"),
+      item("wife", "👰", "Wife", "زَوْجَة", "Zawja", "Istri"),
+      item("cousin", "🧑", "Cousin", "اِبْن عَمّ", "Ibn ʿamm", "Sepupu")
     ]
   },
   {
@@ -182,7 +198,11 @@ export const KID_TOPICS = [
       item("tooth", "🦷", "Tooth", "سِنّ", "Sinn", "Gigi"),
       item("tongue", "👅", "Tongue", "لِسَان", "Lisān", "Lidah"),
       item("belly", "🫃", "Belly", "بَطْن", "Baṭn", "Perut"),
-      item("heart", "❤️", "Heart", "قَلْب", "Qalb", "Jantung")
+      item("heart", "❤️", "Heart", "قَلْب", "Qalb", "Jantung"),
+      item("shoulder", "🧍", "Shoulder", "كَتِف", "Katf", "Bahu"),
+      item("knee", "🦵", "Knee", "رُكْبَة", "Rukba", "Lutut"),
+      item("finger", "☝️", "Finger", "إِصْبَع", "Iṣbaʿ", "Jari"),
+      item("back", "🔙", "Back", "ظَهْر", "Ẓahr", "Punggung")
     ]
   },
   {
@@ -299,7 +319,12 @@ export const KID_TOPICS = [
       item("fd-cake", "🍰", "Cake", "كَعْك", "Kaʿk", "Kue"),
       item("fd-honey", "🍯", "Honey", "عَسَل", "ʿAsal", "Madu"),
       item("fd-soup", "🍲", "Soup", "شُورْبَا", "Shūrbā", "Sup"),
-      item("fd-tea", "🍵", "Tea", "شَاي", "Shāy", "Teh")
+      item("fd-tea", "🍵", "Tea", "شَاي", "Shāy", "Teh"),
+      item("fd-noodles", "🍜", "Noodles", "نُودِلْز", "Nūdilz", "Mie"),
+      item("fd-butter", "🧈", "Butter", "زُبْدَة", "Zubda", "Mentega"),
+      item("fd-olive", "🫒", "Olive", "زَيْتُون", "Zaytūn", "Zaitun"),
+      item("fd-salt", "🧂", "Salt", "مِلْح", "Milḥ", "Garam"),
+      item("fd-sugar", "🍬", "Sugar", "سُكَّر", "Sukkar", "Gula")
     ]
   },
   {
@@ -318,7 +343,12 @@ export const KID_TOPICS = [
       item("tr-motorcycle", "🏍️", "Motorcycle", "دَرَّاجَة نَارِيَّة", "Darrāja nāriyya", "Motor"),
       item("tr-truck", "🚚", "Truck", "شَاحِنَة", "Shāḥina", "Truk"),
       item("tr-helicopter", "🚁", "Helicopter", "مِرْوَحِيَّة", "Mirwaḥiyya", "Helikopter"),
-      item("tr-rocket", "🚀", "Rocket", "صَارُوخ", "Ṣārūkh", "Roket")
+      item("tr-rocket", "🚀", "Rocket", "صَارُوخ", "Ṣārūkh", "Roket"),
+      item("tr-ship", "🚢", "Ship", "سَفِينَة", "Safīna", "Kapal"),
+      item("tr-taxi", "🚕", "Taxi", "سَيَّارَة أُجْرَة", "Sayyārat ujra", "Taksi"),
+      item("tr-ambulance", "🚑", "Ambulance", "إِسْعَاف", "Isʿāf", "Ambulans"),
+      item("tr-tractor", "🚜", "Tractor", "جَرَّار", "Jarrār", "Traktor"),
+      item("tr-subway", "🚇", "Subway", "مِتْرُو", "Mitrū", "Kereta bawah tanah")
     ]
   },
   {
@@ -356,7 +386,11 @@ export const KID_TOPICS = [
       item("hm-key", "🔑", "Key", "مِفْتَاح", "Miftāḥ", "Kunci"),
       item("hm-clock", "⏰", "Clock", "سَاعَة", "Sāʿa", "Jam"),
       item("hm-spoon", "🥄", "Spoon", "مِلْعَقَة", "Milʿaqa", "Sendok"),
-      item("hm-soap", "🧼", "Soap", "صَابُون", "Ṣābūn", "Sabun")
+      item("hm-soap", "🧼", "Soap", "صَابُون", "Ṣābūn", "Sabun"),
+      item("hm-mirror", "🪞", "Mirror", "مِرْآة", "Mirʾāh", "Cermin"),
+      item("hm-fan", "🌀", "Fan", "مِرْوَحَة", "Mirwaḥa", "Kipas"),
+      item("hm-basket", "🧺", "Basket", "سَلَّة", "Salla", "Keranjang"),
+      item("hm-toothbrush", "🪥", "Toothbrush", "فُرْشَاة أَسْنَان", "Furshāt asnān", "Sikat gigi")
     ]
   },
   {
@@ -375,7 +409,11 @@ export const KID_TOPICS = [
       item("cl-jacket", "🧥", "Jacket", "سُتْرَة", "Sutra", "Jaket"),
       item("cl-glasses", "👓", "Glasses", "نَظَّارَة", "Naẓẓāra", "Kacamata"),
       item("cl-bag", "🎒", "Bag", "حَقِيبَة", "Ḥaqība", "Tas"),
-      item("cl-umbrella", "☂️", "Umbrella", "مِظَلَّة", "Miẓalla", "Payung")
+      item("cl-umbrella", "☂️", "Umbrella", "مِظَلَّة", "Miẓalla", "Payung"),
+      item("cl-sandals", "🩴", "Sandals", "صَنْدَل", "Ṣandal", "Sandal"),
+      item("cl-scarf", "🧣", "Scarf", "وِشَاح", "Wishāḥ", "Syal"),
+      item("cl-uniform", "🥋", "Uniform", "زِيّ رَسْمِيّ", "Ziyy rasmī", "Seragam"),
+      item("cl-gloves", "🧤", "Gloves", "قُفَّازَات", "Quffāzāt", "Sarung tangan")
     ]
   },
   {
@@ -394,7 +432,12 @@ export const KID_TOPICS = [
       item("fl-scared", "😨", "Scared", "خَائِف", "Khāʾif", "Takut"),
       item("fl-sleepy", "🥱", "Sleepy", "نَاعِس", "Nāʿis", "Mengantuk"),
       item("fl-excited", "🤩", "Excited", "مُتَحَمِّس", "Mutaḥammis", "Bersemangat"),
-      item("fl-calm", "😌", "Calm", "هَادِئ", "Hādiʾ", "Tenang")
+      item("fl-calm", "😌", "Calm", "هَادِئ", "Hādiʾ", "Tenang"),
+      item("fl-surprised", "😲", "Surprised", "مُتَعَجِّب", "Mutaʿajjib", "Terkejut"),
+      item("fl-shy", "😳", "Shy", "خَجُول", "Khajūl", "Malu"),
+      item("fl-proud", "🥹", "Proud", "فَخُور", "Fakhūr", "Bangga"),
+      item("fl-bored", "😐", "Bored", "مَلُول", "Malūl", "Bosan"),
+      item("fl-sick", "🤒", "Sick", "مَرِيض", "Marīḍ", "Sakit")
     ]
   },
   {
@@ -415,10 +458,143 @@ export const KID_TOPICS = [
       item("wc-storm", "⛈️", "Storm", "عَاصِفَة", "ʿĀṣifa", "Badai"),
       item("wc-fog", "🌫️", "Fog", "ضَبَاب", "Ḍabāb", "Kabut")
     ]
+  },
+  {
+    id: "school",
+    label: "Sekolah",
+    emoji: "🏫",
+    color: "#60a5fa",
+    blurb: "Benda di kelas",
+    items: [
+      item("sc-book", "📚", "Book", "كِتَاب", "Kitāb", "Buku"),
+      item("sc-notebook", "📓", "Notebook", "دَفْتَر", "Daftar", "Buku tulis"),
+      item("sc-pencil", "✏️", "Pencil", "قَلَم رَصَاص", "Qalam raṣāṣ", "Pensil"),
+      item("sc-pen", "🖊️", "Pen", "قَلَم حِبْر", "Qalam ḥibr", "Pulpen"),
+      item("sc-ruler", "📏", "Ruler", "مِسْطَرَة", "Misṭara", "Penggaris"),
+      item("sc-scissors", "✂️", "Scissors", "مِقَصّ", "Miqaṣṣ", "Gunting"),
+      item("sc-crayon", "🖍️", "Crayon", "قَلَم تَلْوِين", "Qalam talwīn", "Krayon"),
+      item("sc-bag", "🎒", "Backpack", "حَقِيبَة", "Ḥaqība", "Tas ransel"),
+      item("sc-teacher", "🧑‍🏫", "Teacher", "مُعَلِّم", "Muʿallim", "Guru"),
+      item("sc-student", "🧑‍🎓", "Student", "طَالِب", "Ṭālib", "Murid"),
+      item("sc-glue", "🧴", "Glue", "صَمْغ", "Ṣamgh", "Lem"),
+      item("sc-globe", "🌍", "Globe", "كُرَة أَرْضِيَّة", "Kura arḍiyya", "Bola dunia")
+    ]
+  },
+  {
+    id: "kitchen",
+    label: "Dapur",
+    emoji: "🍳",
+    color: "#f59e0b",
+    blurb: "Alat masak dan makan",
+    items: [
+      item("kt-spoon", "🥄", "Spoon", "مِلْعَقَة", "Milʿaqa", "Sendok"),
+      item("kt-fork", "🍴", "Fork", "شَوْكَة", "Shawka", "Garpu"),
+      item("kt-knife", "🔪", "Knife", "سِكِّين", "Sikkīn", "Pisau"),
+      item("kt-plate", "🍽️", "Plate", "صَحْن", "Ṣaḥn", "Piring"),
+      item("kt-bowl", "🥣", "Bowl", "وِعَاء", "Wiʿāʾ", "Mangkuk"),
+      item("kt-cup", "☕", "Cup", "كُوب", "Kūb", "Cangkir"),
+      item("kt-pot", "🍲", "Pot", "قِدْر", "Qidr", "Panci"),
+      item("kt-pan", "🍳", "Pan", "مِقْلَاة", "Miqlāh", "Wajan"),
+      item("kt-kettle", "🫖", "Kettle", "إِبْرِيق", "Ibrīq", "Teko"),
+      item("kt-fridge", "🧊", "Fridge", "ثَلَّاجَة", "Thallāja", "Kulkas"),
+      item("kt-stove", "🔥", "Stove", "مَوْقِد", "Mawqid", "Kompor"),
+      item("kt-towel", "🧻", "Towel", "مِنْشَفَة", "Minshafa", "Handuk")
+    ]
+  },
+  {
+    id: "time",
+    label: "Waktu",
+    emoji: "⏰",
+    color: "#6366f1",
+    blurb: "Pagi sampai malam",
+    items: [
+      item("tm-morning", "🌅", "Morning", "صَبَاح", "Ṣabāḥ", "Pagi"),
+      item("tm-afternoon", "🌤️", "Afternoon", "بَعْد الظُّهْر", "Baʿd aẓ-ẓuhr", "Siang"),
+      item("tm-evening", "🌆", "Evening", "مَسَاء", "Masāʾ", "Sore"),
+      item("tm-night", "🌙", "Night", "لَيْل", "Layl", "Malam"),
+      item("tm-today", "📅", "Today", "الْيَوْم", "Al-yawm", "Hari ini"),
+      item("tm-tomorrow", "⏭️", "Tomorrow", "غَدًا", "Ghadan", "Besok"),
+      item("tm-yesterday", "⏮️", "Yesterday", "أَمْس", "Ams", "Kemarin"),
+      item("tm-hour", "⏰", "Hour", "سَاعَة", "Sāʿa", "Jam"),
+      item("tm-minute", "⏱️", "Minute", "دَقِيقَة", "Daqīqa", "Menit"),
+      item("tm-week", "🗓️", "Week", "أُسْبُوع", "Usbūʿ", "Minggu"),
+      item("tm-month", "📆", "Month", "شَهْر", "Shahr", "Bulan"),
+      item("tm-year", "🕰️", "Year", "سَنَة", "Sana", "Tahun")
+    ]
+  },
+  {
+    id: "jobs",
+    label: "Pekerjaan",
+    emoji: "🧑‍🔧",
+    color: "#14b8a6",
+    blurb: "Cita-cita dan profesi",
+    items: [
+      item("jb-doctor", "🧑‍⚕️", "Doctor", "طَبِيب", "Ṭabīb", "Dokter"),
+      item("jb-nurse", "👩‍⚕️", "Nurse", "مُمَرِّضَة", "Mumarriḍa", "Perawat"),
+      item("jb-police", "👮", "Police", "شُرْطِيّ", "Shurṭī", "Polisi"),
+      item("jb-firefighter", "👨‍🚒", "Firefighter", "رَجُل إِطْفَاء", "Rajul iṭfāʾ", "Pemadam kebakaran"),
+      item("jb-farmer", "👨‍🌾", "Farmer", "مُزَارِع", "Muzāriʿ", "Petani"),
+      item("jb-driver", "🚗", "Driver", "سَائِق", "Sāʾiq", "Sopir"),
+      item("jb-chef", "👨‍🍳", "Chef", "طَبَّاخ", "Ṭabbākh", "Koki"),
+      item("jb-pilot", "👨‍✈️", "Pilot", "طَيَّار", "Ṭayyār", "Pilot"),
+      item("jb-dentist", "🦷", "Dentist", "طَبِيب أَسْنَان", "Ṭabīb asnān", "Dokter gigi"),
+      item("jb-engineer", "👷", "Engineer", "مُهَنْدِس", "Muhandis", "Insinyur"),
+      item("jb-seller", "🛒", "Seller", "بَائِع", "Bāʾiʿ", "Penjual"),
+      item("jb-tailor", "🧵", "Tailor", "خَيَّاط", "Khayyāṭ", "Penjahit")
+    ]
+  },
+  {
+    id: "sports",
+    label: "Olahraga",
+    emoji: "⚽",
+    color: "#22c55e",
+    blurb: "Bergerak dan sehat",
+    items: [
+      item("sp-football", "⚽", "Football", "كُرَة قَدَم", "Kurat qadam", "Sepak bola"),
+      item("sp-swimming", "🏊", "Swimming", "سِبَاحَة", "Sibāḥa", "Berenang"),
+      item("sp-running", "🏃", "Running", "جَرْي", "Jary", "Berlari"),
+      item("sp-cycling", "🚴", "Cycling", "رُكُوب الدَّرَّاجَة", "Rukūb ad-darrāja", "Bersepeda"),
+      item("sp-basketball", "🏀", "Basketball", "كُرَة سَلَّة", "Kurat salla", "Bola basket"),
+      item("sp-badminton", "🏸", "Badminton", "تِنِس رِيشَة", "Tinis rīsha", "Bulu tangkis"),
+      item("sp-tennis", "🎾", "Tennis", "تِنِس", "Tinis", "Tenis"),
+      item("sp-volleyball", "🏐", "Volleyball", "كُرَة طَائِرَة", "Kurat ṭāʾira", "Bola voli"),
+      item("sp-gymnastics", "🤸", "Gymnastics", "جُمْبَاز", "Jumbāz", "Senam"),
+      item("sp-karate", "🥋", "Karate", "كَرَاتِيه", "Kārātīh", "Karate")
+    ]
+  },
+  {
+    id: "toys",
+    label: "Mainan",
+    emoji: "🧸",
+    color: "#ec4899",
+    blurb: "Mainan favorit",
+    items: [
+      item("ty-doll", "🪆", "Doll", "دُمْيَة", "Dumya", "Boneka"),
+      item("ty-kite", "🪁", "Kite", "طَائِرَة وَرَقِيَّة", "Ṭāʾira waraqiyya", "Layang-layang"),
+      item("ty-blocks", "🧱", "Blocks", "مُكَعَّبَات", "Mukaʿabāt", "Balok"),
+      item("ty-train", "🚂", "Train", "قِطَار", "Qiṭār", "Kereta mainan"),
+      item("ty-car", "🚙", "Car", "سَيَّارَة", "Sayyāra", "Mobil mainan"),
+      item("ty-balloon", "🎈", "Balloon", "بَالُون", "Bālūn", "Balon"),
+      item("ty-puzzle", "🧩", "Puzzle", "أُحْجِيَّة", "Uḥjiyya", "Puzzle"),
+      item("ty-robot", "🤖", "Robot", "رُوبُوت", "Rūbūt", "Robot"),
+      item("ty-teddy", "🧸", "Teddy bear", "دُبّ", "Dubb", "Beruang mainan"),
+      item("ty-bubbles", "🫧", "Bubbles", "فَقَاعَات", "Faqāʿāt", "Gelembung"),
+      item("ty-drum", "🥁", "Drum", "طَبْل", "Ṭabl", "Gendang")
+    ]
   }
 ]
 
 export const TOPIC_MAP = Object.fromEntries(KID_TOPICS.map(topic => [topic.id, topic]))
+
+/** Pengelompokan topik di beranda supaya daftar topik tidak menumpuk panjang. */
+export const KID_TOPIC_GROUPS = [
+  { id: "dasar", emoji: "🔤", title: "Dasar & Huruf", ids: ["alphabet", "hijaiyah", "numbers", "colors", "shapes", "greetings"] },
+  { id: "makhluk", emoji: "🐾", title: "Hewan & Alam", ids: ["animals", "nature", "weather", "fruits"] },
+  { id: "makanan", emoji: "🍽️", title: "Makanan & Dapur", ids: ["food", "kitchen"] },
+  { id: "rumah", emoji: "🏠", title: "Rumah & Tubuh", ids: ["home", "body", "clothes", "family", "feelings"] },
+  { id: "kegiatan", emoji: "🎒", title: "Sekolah, Waktu & Jalan", ids: ["school", "time", "transport", "toys"] },
+  { id: "profesi", emoji: "⚽", title: "Kegiatan & Profesi", ids: ["verbs", "jobs", "sports"] }
+]
 
 export const KID_STAR_MILESTONES = [
   { stars: 1, id: "star-1" },
