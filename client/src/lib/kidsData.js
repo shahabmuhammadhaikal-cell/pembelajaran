@@ -581,6 +581,131 @@ export const KID_TOPICS = [
       item("ty-bubbles", "🫧", "Bubbles", "فَقَاعَات", "Faqāʿāt", "Gelembung"),
       item("ty-drum", "🥁", "Drum", "طَبْل", "Ṭabl", "Gendang")
     ]
+  },
+  {
+    id: "vegetables",
+    label: "Sayuran",
+    emoji: "🥕",
+    color: "#65a30d",
+    blurb: "Sayur segar di kebun",
+    items: [
+      item("vg-carrot", "🥕", "Carrot", "جَزَر", "Jazar", "Wortel"),
+      item("vg-tomato", "🍅", "Tomato", "طَمَاطِم", "Ṭamāṭim", "Tomat"),
+      item("vg-potato", "🥔", "Potato", "بَطَاطِس", "Baṭāṭis", "Kentang"),
+      item("vg-onion", "🧅", "Onion", "بَصَل", "Baṣal", "Bawang"),
+      item("vg-garlic", "🧄", "Garlic", "ثَوْم", "Thawm", "Bawang putih"),
+      item("vg-cucumber", "🥒", "Cucumber", "خِيَار", "Khiyār", "Mentimun"),
+      item("vg-broccoli", "🥦", "Broccoli", "بْرُوكُلِي", "Brūkulī", "Brokoli"),
+      item("vg-corn", "🌽", "Corn", "ذُرَة", "Dhura", "Jagung"),
+      item("vg-pepper", "🫑", "Bell pepper", "فِلْفِل", "Filfil", "Paprika"),
+      item("vg-eggplant", "🍆", "Eggplant", "بَاذِنْجَان", "Bādhinjān", "Terong"),
+      item("vg-cabbage", "🥬", "Cabbage", "كُرُنْب", "Kurunb", "Kubis"),
+      item("vg-pumpkin", "🎃", "Pumpkin", "قَرْع", "Qarʿ", "Labu"),
+      item("vg-chili", "🌶️", "Chili", "فِلْفِل حَار", "Filfil ḥārr", "Cabai"),
+      item("vg-mushroom", "🍄", "Mushroom", "فُطْر", "Fuṭr", "Jamur")
+    ]
+  },
+  {
+    id: "drinks",
+    label: "Minuman",
+    emoji: "🥤",
+    color: "#06b6d4",
+    blurb: "Minuman segar sehari-hari",
+    items: [
+      item("dr-water", "💧", "Water", "مَاء", "Māʾ", "Air"),
+      item("dr-milk", "🥛", "Milk", "حَلِيب", "Ḥalīb", "Susu"),
+      item("dr-juice", "🧃", "Juice", "عَصِير", "ʿAṣīr", "Jus"),
+      item("dr-tea", "🍵", "Tea", "شَاي", "Shāy", "Teh"),
+      item("dr-coffee", "☕", "Coffee", "قَهْوَة", "Qahwa", "Kopi"),
+      item("dr-lemonade", "🍋", "Lemonade", "لَيْمُونَادَة", "Laymūnāda", "Limun"),
+      item("dr-milkshake", "🥤", "Milkshake", "مِيلْك شِيك", "Mīlk shīk", "Milkshake"),
+      item("dr-coconut", "🥥", "Coconut water", "مَاء جَوْز الْهِنْد", "Māʾ jawz al-hind", "Air kelapa"),
+      item("dr-hotchoc", "🍫", "Hot chocolate", "شُوكُولَاتَة سَاخِنَة", "Shūkūlāta sākhina", "Cokelat panas"),
+      item("dr-orange", "🍊", "Orange juice", "عَصِير بُرْتُقَال", "ʿAṣīr burtuqāl", "Jus jeruk"),
+      item("dr-melon", "🍉", "Watermelon juice", "عَصِير بَطِّيخ", "ʿAṣīr baṭṭīkh", "Jus semangka"),
+      item("dr-syrup", "🍯", "Syrup", "شَرَاب", "Sharāb", "Sirup")
+    ]
+  },
+  {
+    id: "bathroom",
+    label: "Kamar Mandi",
+    emoji: "🛁",
+    color: "#0d9488",
+    blurb: "Alat mandi dan kebersihan",
+    items: [
+      item("bt-toothbrush", "🪥", "Toothbrush", "فُرْشَاة أَسْنَان", "Furshāt asnān", "Sikat gigi"),
+      item("bt-toothpaste", "🧴", "Toothpaste", "مَعْجُون أَسْنَان", "Maʿjūn asnān", "Pasta gigi"),
+      item("bt-soap", "🧼", "Soap", "صَابُون", "Ṣābūn", "Sabun"),
+      item("bt-shampoo", "🧴", "Shampoo", "شَامْبُو", "Shāmpū", "Sampo"),
+      item("bt-towel", "🧻", "Towel", "مِنْشَفَة", "Minshafa", "Handuk"),
+      item("bt-mirror", "🪞", "Mirror", "مِرْآة", "Mirʾāh", "Cermin"),
+      item("bt-sink", "🚰", "Sink", "حَوْض", "Ḥawḍ", "Wastafel"),
+      item("bt-bathtub", "🛁", "Bathtub", "حَوْض اسْتِحْمَام", "Ḥawḍ istiḥmām", "Bak mandi"),
+      item("bt-shower", "🚿", "Shower", "دُشّ", "Dush", "Pancuran"),
+      item("bt-toilet", "🚽", "Toilet", "مِرْحَاض", "Mirḥāḍ", "Toilet"),
+      item("bt-bucket", "🪣", "Bucket", "دَلْو", "Dalw", "Ember"),
+      item("bt-sponge", "🧽", "Sponge", "إِسْفَنْج", "Isfanj", "Spons")
+    ]
+  },
+  {
+    id: "music",
+    label: "Alat Musik",
+    emoji: "🎸",
+    color: "#9333ea",
+    blurb: "Bunyi-bunyian yang seru",
+    items: [
+      item("mu-guitar", "🎸", "Guitar", "جِيتَار", "Jītār", "Gitar"),
+      item("mu-piano", "🎹", "Piano", "بِيَانُو", "Biyānū", "Piano"),
+      item("mu-violin", "🎻", "Violin", "كَمَان", "Kamān", "Biola"),
+      item("mu-drum", "🥁", "Drum", "طَبْل", "Ṭabl", "Gendang"),
+      item("mu-trumpet", "🎺", "Trumpet", "بُوق", "Būq", "Terompet"),
+      item("mu-microphone", "🎤", "Microphone", "مِيكْرُوفُون", "Mīkrūfūn", "Mikrofon"),
+      item("mu-darbuka", "🪘", "Darbuka", "دَرْبُوكَة", "Darbūka", "Darbuka"),
+      item("mu-saxophone", "🎷", "Saxophone", "سَاكْسُوفُون", "Sāksūfūn", "Saksofon"),
+      item("mu-accordion", "🪗", "Accordion", "أَكُورْدِيُون", "Akūrdiyūn", "Akordeon"),
+      item("mu-banjo", "🪕", "Banjo", "بَانْجُو", "Bānjū", "Banjo"),
+      item("mu-bell", "🔔", "Bell", "جَرَس", "Jaras", "Lonceng"),
+      item("mu-headphones", "🎧", "Headphones", "سَمَّاعَات", "Sammāʿāt", "Headphone")
+    ]
+  },
+  {
+    id: "insects",
+    label: "Serangga",
+    emoji: "🦋",
+    color: "#eab308",
+    blurb: "Teman kecil di taman",
+    items: [
+      item("in-butterfly", "🦋", "Butterfly", "فَرَاشَة", "Farāsha", "Kupu-kupu"),
+      item("in-bee", "🐝", "Bee", "نَحْلَة", "Naḥla", "Lebah"),
+      item("in-ant", "🐜", "Ant", "نَمْلَة", "Namla", "Semut"),
+      item("in-ladybug", "🐞", "Ladybug", "دُعْسُوقَة", "Duʿsūqa", "Kepik"),
+      item("in-spider", "🕷️", "Spider", "عَنْكَبُوت", "ʿAnkabūt", "Laba-laba"),
+      item("in-snail", "🐌", "Snail", "حَلَزُون", "Ḥalazūn", "Siput"),
+      item("in-worm", "🪱", "Worm", "دُودَة", "Dūda", "Cacing"),
+      item("in-cricket", "🦗", "Cricket", "جُدْجُد", "Judjud", "Jangkrik"),
+      item("in-mosquito", "🦟", "Mosquito", "بَعُوضَة", "Baʿūḍa", "Nyamuk"),
+      item("in-beetle", "🪲", "Beetle", "خُنْفُسَاء", "Khunfusāʾ", "Kumbang")
+    ]
+  },
+  {
+    id: "space",
+    label: "Antariksa",
+    emoji: "🚀",
+    color: "#4f46e5",
+    blurb: "Menjelajah langit luas",
+    items: [
+      item("as-sun", "☀️", "Sun", "شَمْس", "Shams", "Matahari"),
+      item("as-moon", "🌙", "Moon", "قَمَر", "Qamar", "Bulan"),
+      item("as-star", "⭐", "Star", "نَجْمَة", "Najma", "Bintang"),
+      item("as-earth", "🌍", "Earth", "الْأَرْض", "Al-arḍ", "Bumi"),
+      item("as-rocket", "🚀", "Rocket", "صَارُوخ", "Ṣārūkh", "Roket"),
+      item("as-astronaut", "🧑‍🚀", "Astronaut", "رَائِد فَضَاء", "Rāʾid faḍāʾ", "Astronaut"),
+      item("as-planet", "🪐", "Planet", "كَوْكَب", "Kawkab", "Planet"),
+      item("as-telescope", "🔭", "Telescope", "تِلِسْكُوب", "Tiliskūb", "Teleskop"),
+      item("as-satellite", "🛰️", "Satellite", "قَمَر صِنَاعِيّ", "Qamar ṣināʿī", "Satelit"),
+      item("as-galaxy", "🌌", "Galaxy", "مَجَرَّة", "Majarra", "Galaksi"),
+      item("as-comet", "☄️", "Comet", "مُذَنَّب", "Mudhannab", "Komet")
+    ]
   }
 ]
 
@@ -589,11 +714,11 @@ export const TOPIC_MAP = Object.fromEntries(KID_TOPICS.map(topic => [topic.id, t
 /** Pengelompokan topik di beranda supaya daftar topik tidak menumpuk panjang. */
 export const KID_TOPIC_GROUPS = [
   { id: "dasar", emoji: "🔤", title: "Dasar & Huruf", ids: ["alphabet", "hijaiyah", "numbers", "colors", "shapes", "greetings"] },
-  { id: "makhluk", emoji: "🐾", title: "Hewan & Alam", ids: ["animals", "nature", "weather", "fruits"] },
-  { id: "makanan", emoji: "🍽️", title: "Makanan & Dapur", ids: ["food", "kitchen"] },
-  { id: "rumah", emoji: "🏠", title: "Rumah & Tubuh", ids: ["home", "body", "clothes", "family", "feelings"] },
+  { id: "makhluk", emoji: "🐾", title: "Hewan, Alam & Angkasa", ids: ["animals", "insects", "nature", "weather", "fruits", "space"] },
+  { id: "makanan", emoji: "🍽️", title: "Makanan & Dapur", ids: ["food", "vegetables", "drinks", "kitchen"] },
+  { id: "rumah", emoji: "🏠", title: "Rumah & Tubuh", ids: ["home", "bathroom", "body", "clothes", "family", "feelings"] },
   { id: "kegiatan", emoji: "🎒", title: "Sekolah, Waktu & Jalan", ids: ["school", "time", "transport", "toys"] },
-  { id: "profesi", emoji: "⚽", title: "Kegiatan & Profesi", ids: ["verbs", "jobs", "sports"] }
+  { id: "profesi", emoji: "⚽", title: "Kegiatan & Profesi", ids: ["verbs", "jobs", "sports", "music"] }
 ]
 
 export const KID_STAR_MILESTONES = [

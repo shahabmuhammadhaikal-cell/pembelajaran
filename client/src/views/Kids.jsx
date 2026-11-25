@@ -367,6 +367,11 @@ export default function Kids() {
     () => KID_TOPICS.reduce((sum, topic) => sum + topic.items.length, 0),
     []
   )
+  const resumeInfo = useMemo(() => {
+    const learned = resumeTopic.items.filter(entry => kids.learned[entry.key]).length
+    const total = resumeTopic.items.length
+    return { learned, total, percent: total ? Math.round((learned / total) * 100) : 0 }
+  }, [resumeTopic, kids.learned])
 
   const doneTopics = Object.keys(kids.topicsDone).length
   const stickerCount = Object.keys(kids.stickers).length
@@ -514,6 +519,27 @@ export default function Kids() {
         </div>
       </header>
 
+      <section className="kid-resume" style={{ "--kid-accent": resumeTopic.color }}>
+        <span className="kid-resume-art" aria-hidden>
+          {resumeTopic.emoji}
+        </span>
+        <div className="kid-resume-copy">
+          <span className="kid-resume-kicker">
+            {kids.lastTopic ? "🧭 Lanjutkan belajar" : "🌟 Mulai petualangan"}
+          </span>
+          <strong className="kid-resume-title">{resumeTopic.label}</strong>
+          <span className="kid-resume-meta">
+            {resumeInfo.learned}/{resumeInfo.total} kata dikenal · {resumeTopic.blurb}
+          </span>
+          <span className="kid-resume-bar">
+            <span style={{ width: `${resumeInfo.percent}%` }} />
+          </span>
+        </div>
+        <button className="kid-btn kid-btn-primary kid-btn-sm" onClick={() => openTopic(resumeTopic.id)}>
+          {resumeInfo.learned ? "Lanjut →" : "Buka →"}
+        </button>
+      </section>
+
       <div className="kid-tools kid-profiles">
         <span className="kid-tools-label">Profil anak:</span>
         {profiles.map(profile => (
@@ -627,7 +653,12 @@ export default function Kids() {
 
       <section className="kid-section">
         <div className="kid-section-head">
-          <h3>Mainkan dulu, yuk!</h3>
+          <h3>
+            <span className="kid-section-emoji" aria-hidden>
+              🎮
+            </span>{" "}
+            Mainkan dulu, yuk!
+          </h3>
           <span className="kid-section-sub">Lima permainan seru dengan suara</span>
         </div>
         <div className="kid-games">
@@ -656,7 +687,12 @@ export default function Kids() {
 
       <section className="kid-section">
         <div className="kid-section-head">
-          <h3>Cerita bergambar</h3>
+          <h3>
+            <span className="kid-section-emoji" aria-hidden>
+              📖
+            </span>{" "}
+            Cerita bergambar
+          </h3>
           <span className="kid-section-sub">
             {readCount}/{KID_STORIES.length} cerita dibaca · bertutur 3 bahasa
           </span>
@@ -696,7 +732,12 @@ export default function Kids() {
 
       <section className="kid-section">
         <div className="kid-section-head">
-          <h3>Pilih topik belajar</h3>
+          <h3>
+            <span className="kid-section-emoji" aria-hidden>
+              🗂️
+            </span>{" "}
+            Pilih topik belajar
+          </h3>
           <span className="kid-section-sub">
             {KID_TOPICS.length} topik · {totalWords} kata bergambar
           </span>
@@ -722,8 +763,13 @@ export default function Kids() {
                       style={{ "--kid-accent": topic.color }}
                       onClick={() => openTopic(topic.id)}
                     >
-                      <span className="kid-topic-emoji" aria-hidden>
-                        {topic.emoji}
+                      <span className="kid-topic-top">
+                        <span className="kid-topic-emoji" aria-hidden>
+                          {topic.emoji}
+                        </span>
+                        <span className={`kid-topic-percent ${percent === 100 ? "full" : ""}`}>
+                          {percent === 100 ? "✓" : `${percent}%`}
+                        </span>
                       </span>
                       <span className="kid-topic-name">
                         {topic.label}
@@ -752,7 +798,12 @@ export default function Kids() {
 
       <section className="kid-section">
         <div className="kid-section-head">
-          <h3>Album stiker</h3>
+          <h3>
+            <span className="kid-section-emoji" aria-hidden>
+              🏅
+            </span>{" "}
+            Album stiker
+          </h3>
           <span className="kid-section-sub">
             {stickerCount} dari {KID_STICKERS.length} terbuka
           </span>
