@@ -77,6 +77,16 @@ test("penanda reset tamu bisa dihapus sebelum digabung ke akun", () => {
   assert.equal(stripped.profiles.p1.resetAt, 0)
 })
 
+test("kata sulit digabung dengan hitungan terbesar", () => {
+  const merged = mergeKids(
+    { mistakes: { "animals:cat": { count: 2, at: 10 } } },
+    { mistakes: { "animals:cat": { count: 5, at: 20 }, "food:fd-rice": { count: 1, at: 5 } } }
+  )
+  assert.equal(merged.mistakes["animals:cat"].count, 5)
+  assert.equal(merged.mistakes["animals:cat"].at, 20)
+  assert.equal(merged.mistakes["food:fd-rice"].count, 1)
+})
+
 test("profil baru dari akun ikut ditambahkan", () => {
   const merged = mergeKidsDoc(
     { active: "p1", profiles: { p1: { id: "p1", name: "Kakak", stars: 2 } } },

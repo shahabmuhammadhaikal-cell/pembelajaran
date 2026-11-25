@@ -8,6 +8,8 @@ import {
   normalizeKidsDoc,
   stripResetTimestamps
 } from "../lib/kidsMerge.js"
+
+const MISTAKE_LIMIT = 80
 import { localDayKeyWithOffset } from "../lib/dates.js"
 
 export const KIDS_KEY = "pembelajar_kids_v2"
@@ -140,6 +142,50 @@ export function useKidsProgress() {
     },
     [updateActive]
   )
+
+  /** Catat satu jawaban salah untuk dipakai pintasan "kata sulit". */
+  const recordMistake = useCallback(
+    (topicId, key) => {
+      const topic = String(topicId || "").trim()
+      const word = String(key || "").trim()
+      if (!topic || !word) return
+      const signature = `${topic}:${word}`.slice(0, 80)
+      updateActive(previous => {
+        const current = previous.mistakes && previous.mistakes[signature]
+        const next = {
+          ...(previous.mistakes || {}),
+          [signature]: { count: ((current && current.count) || 0) + 1, at: Date.now() }
+        }
+        const keys = Object.keys(next)
+        if (keys.length > MISTAKE_LIMIT) {
+          keys
+            .sort((a, b) => (next[a].at || 0) - (next[b].at || 0))
+            .slice(0, keys.length - MISTAKE_LIMIT)
+            .forEach(old => delete next[old])
+        }
+        return { ...previous, mistakes: next }
+      })
+    },
+    [updateActive]
+  )
+
+  /** Tandai satu kata sudah bisa (dihapus dari daftar kata sulit). */
+  const forgetMistake = useCallback(
+    signature => {
+      if (!signature) return
+      updateActive(previous => {
+        if (!previous.mistakes || !previous.mistakes[signature]) return previous
+        const next = { ...previous.mistakes }
+        delete next[signature]
+        return { ...previous, mistakes: next }
+      })
+    },
+    [updateActive]
+  )
+
+  const clearMistakes = useCallback(() => {
+    updateActive(previous => ({ ...previous, mistakes: {} }))
+  }, [updateActive])
 
   const setSetting = useCallback(
     (key, value) => {
@@ -276,6 +322,9 @@ export function useKidsProgress() {
     finishTopic,
     readStory,
     recordBest,
+    recordMistake,
+    forgetMistake,
+    clearMistakes,
     setSetting,
     setLastTopic,
     hydrate,

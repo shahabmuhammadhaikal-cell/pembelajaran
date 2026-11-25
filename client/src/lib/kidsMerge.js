@@ -16,6 +16,7 @@ export const KIDS_PROFILE_DEFAULTS = {
   topicsDone: {},
   stories: {},
   stickers: {},
+  mistakes: {},
   best: { listen: 0, guess: 0, spell: 0, match: 0, count: 0 },
   lastTopic: "",
   daily: { day: "", activities: 0, goal: 3, claimed: 0 },
@@ -31,6 +32,32 @@ const num = value => {
 const maxOf = (a, b) => Math.max(num(a), num(b))
 const objectOf = value => (value && typeof value === "object" && !Array.isArray(value) ? value : {})
 const textOf = (value, max = 40) => String(value || "").trim().slice(0, max)
+
+/** Kata sulit disimpan per "topik:kunci" dengan jumlah salah dan waktu terakhir. */
+export function cleanMistakes(value) {
+  const output = {}
+  for (const [rawKey, rawEntry] of Object.entries(objectOf(value))) {
+    const signature = textOf(rawKey, 80)
+    if (!signature) continue
+    const entry = objectOf(rawEntry)
+    output[signature] = {
+      count: Math.max(1, Math.round(num(entry.count)) || 1),
+      at: Math.max(0, num(entry.at))
+    }
+  }
+  return output
+}
+
+function mergeMistakes(localValue, remoteValue) {
+  const merged = cleanMistakes(remoteValue)
+  for (const [signature, entry] of Object.entries(cleanMistakes(localValue))) {
+    const previous = merged[signature]
+    merged[signature] = previous
+      ? { count: maxOf(previous.count, entry.count), at: maxOf(previous.at, entry.at) }
+      : entry
+  }
+  return merged
+}
 
 function idOf(value) {
   return textOf(value, 40).replace(/[^a-zA-Z0-9_-]+/g, "")
@@ -51,6 +78,7 @@ export function normalizeProfile(value, id, fallbackName = "Anak 1") {
     topicsDone: { ...objectOf(source.topicsDone) },
     stories: { ...objectOf(source.stories) },
     stickers: { ...objectOf(source.stickers) },
+    mistakes: cleanMistakes(source.mistakes),
     best: { ...KIDS_PROFILE_DEFAULTS.best, ...objectOf(source.best) },
     daily: { ...KIDS_PROFILE_DEFAULTS.daily, ...objectOf(source.daily) },
     streak: { ...KIDS_PROFILE_DEFAULTS.streak, ...objectOf(source.streak) },
@@ -72,6 +100,7 @@ function profileHasProgress(profile) {
       Object.keys(profile.topicsDone || {}).length ||
       Object.keys(profile.stories || {}).length ||
       Object.keys(profile.stickers || {}).length ||
+      Object.keys(profile.mistakes || {}).length ||
       Object.values(profile.best || {}).some(value => Number(value) > 0) ||
       profile.lastTopic ||
       (profile.daily && ((profile.daily.activities || 0) > 0 || profile.daily.claimed)) ||
@@ -162,6 +191,7 @@ export function mergeKids(localValue, remoteValue) {
     topicsDone: { ...remote.topicsDone, ...local.topicsDone },
     stories: { ...remote.stories, ...local.stories },
     stickers: { ...remote.stickers, ...local.stickers },
+    mistakes: mergeMistakes(local.mistakes, remote.mistakes),
     best,
     daily,
     streak,

@@ -68,6 +68,8 @@ export default function Kids() {
     finishTopic,
     readStory,
     recordBest,
+    recordMistake,
+    forgetMistake,
     setSetting,
     setLastTopic,
     hydrate,
@@ -449,6 +451,54 @@ export default function Kids() {
   const topStars = Math.max(1, ...profiles.map(profile => profile.stars || 0))
 
   // Enam kata pilihan yang berganti tiap minggu, dipilih deterministik dari tanggal.
+  // Kata sulit: kata yang pernah dijawab salah di permainan, diurutkan dari yang tersering.
+  const hardWords = useMemo(() => {
+    const list = []
+    for (const [signature, info] of Object.entries(kids.mistakes || {})) {
+      const separator = signature.indexOf(":")
+      if (separator < 1) continue
+      const topicId = signature.slice(0, separator)
+      const key = signature.slice(separator + 1)
+      const topic = TOPIC_MAP[topicId]
+      const entry = topic && topic.items.find(item => item.key === key)
+      if (!topic || !entry) continue
+      list.push({
+        ...entry,
+        signature,
+        topicId,
+        topicLabel: topic.label,
+        topicColor: topic.color,
+        count: (info && info.count) || 1,
+        at: (info && info.at) || 0
+      })
+    }
+    return list.sort((a, b) => b.count - a.count || b.at - a.at)
+  }, [kids.mistakes])
+  const hardTopic = useMemo(
+    () => ({
+      id: "__hard",
+      label: "Kata Sulit",
+      emoji: "🩹",
+      color: "#ef4444",
+      blurb: "Kata yang sering salah",
+      items: hardWords.map(word => {
+        const { signature, topicId, topicLabel, topicColor, count, at, ...entry } = word
+        return entry
+      })
+    }),
+    [hardWords]
+  )
+
+  const handleHardDone = useCallback(() => {
+    logActivity()
+    award(2)
+    showWin({
+      title: "Latihan kata sulit selesai! 🩹",
+      subtitle: `Kamu mengulang ${hardWords.length} kata yang pernah salah.`,
+      stars: 2
+    })
+  }, [hardWords.length, logActivity, award, showWin])
+
   const weekWords = useMemo(() => {
     const pool = KID_PLAY_ITEMS.filter(entry => entry.emoji && entry.emoji !== "🔢")
     const start = new Date(new Date().getFullYear(), 0, 1).getTime()
@@ -470,7 +520,8 @@ export default function Kids() {
   const readCount = Object.keys(kids.stories).length
 
   if (screen.name === "learn") {
-    const topic = TOPIC_MAP[screen.topicId] || KID_TOPICS[0]
+    const topic =
+      screen.topicId === "__hard" ? hardTopic : TOPIC_MAP[screen.topicId] || KID_TOPICS[0]
     return (
       <div className="kids">
         <div className="kid-deco" aria-hidden>
@@ -484,7 +535,7 @@ export default function Kids() {
           settings={settings}
           onBack={goHome}
           onSeen={markLearned}
-          onDone={() => handleTopicDone(topic)}
+          onDone={() => (screen.topicId === "__hard" ? handleHardDone() : handleTopicDone(topic))}
         />
         {celebration ? <Celebration data={celebration} onClose={() => setCelebration(null)} /> : null}
       </div>
@@ -509,22 +560,52 @@ export default function Kids() {
           />
         ) : null}
         {screen.name === "listen" ? (
-          <ListenGame settings={settings} onBack={goHome} onStar={handleStar} onWin={handleGameWin} />
+          <ListenGame
+            settings={settings}
+            onBack={goHome}
+            onStar={handleStar}
+            onWin={handleGameWin}
+            onMistake={recordMistake}
+          />
         ) : null}
         {screen.name === "guess" ? (
-          <GuessGame settings={settings} onBack={goHome} onStar={handleStar} onWin={handleGameWin} />
+          <GuessGame
+            settings={settings}
+            onBack={goHome}
+            onStar={handleStar}
+            onWin={handleGameWin}
+            onMistake={recordMistake}
+          />
         ) : null}
         {screen.name === "spell" ? (
-          <SpellGame settings={settings} onBack={goHome} onStar={handleStar} onWin={handleGameWin} />
+          <SpellGame
+            settings={settings}
+            onBack={goHome}
+            onStar={handleStar}
+            onWin={handleGameWin}
+            onMistake={recordMistake}
+          />
         ) : null}
         {screen.name === "match" ? (
           <MatchGame settings={settings} onBack={goHome} onStar={handleStar} onWin={handleGameWin} />
         ) : null}
         {screen.name === "count" ? (
-          <CountGame settings={settings} onBack={goHome} onStar={handleStar} onWin={handleGameWin} />
+          <CountGame
+            settings={settings}
+            onBack={goHome}
+            onStar={handleStar}
+            onWin={handleGameWin}
+            onMistake={recordMistake}
+          />
         ) : null}
         {screen.name === "letter" ? (
-          <LetterGame settings={settings} onBack={goHome} onStar={handleStar} onWin={handleGameWin} />
+          <LetterGame
+            settings={settings}
+            onBack={goHome}
+            onStar={handleStar}
+            onWin={handleGameWin}
+            onMistake={recordMistake}
+          />
         ) : null}
         {screen.name === "write" ? (
           <WriteBoard letters={TOPIC_MAP.hijaiyah.items} onBack={goHome} />
@@ -637,6 +718,58 @@ export default function Kids() {
           {resumeInfo.learned ? "Lanjut →" : "Buka →"}
         </button>
       </section>
+
+      {hardWords.length ? (
+        <section className="kid-hard">
+          <div className="kid-hard-head">
+            <span className="kid-hard-emoji" aria-hidden>
+              🩹
+            </span>
+            <div className="kid-hard-copy">
+              <strong>Kata sulit · {hardWords.length}</strong>
+              <span>Kumpulan kata yang pernah salah di permainan. Ulangi sampai hafal.</span>
+            </div>
+            <button
+              className="kid-btn kid-btn-primary kid-btn-sm"
+              onClick={() => {
+                unlockKidsAudio()
+                playSfx("pop")
+                setScreen({ name: "learn", topicId: "__hard" })
+              }}
+            >
+              Ulangi sekarang →
+            </button>
+          </div>
+          <div className="kid-hard-list">
+            {hardWords.slice(0, 10).map(word => (
+              <span key={word.signature} className="kid-hard-chip">
+                <button
+                  className="kid-hard-word"
+                  onClick={() => {
+                    playSfx("pop")
+                    kidSaySpeech({ text: word[lang] || word.en, lang, latin: word.tr }, { slow })
+                  }}
+                  title={`Dengarkan ${word[lang] || word.en}`}
+                >
+                  <span aria-hidden>{word.emoji}</span>{" "}
+                  <span className={lang === "ar" ? "kid-word-ar" : ""}>{word[lang] || word.en}</span>
+                </button>
+                <span className="kid-hard-count" aria-label={`salah ${word.count} kali`}>
+                  ×{word.count}
+                </span>
+                <button
+                  className="kid-hard-forget"
+                  onClick={() => forgetMistake(word.signature)}
+                  aria-label={`Tandai ${word[lang] || word.en} sudah bisa`}
+                  title="Sudah bisa, hapus dari daftar"
+                >
+                  ✓
+                </button>
+              </span>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <div className="kid-tools kid-profiles">
         <span className="kid-tools-label">Profil anak:</span>

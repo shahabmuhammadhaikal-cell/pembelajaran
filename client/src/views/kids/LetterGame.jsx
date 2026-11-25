@@ -18,7 +18,7 @@ function shuffle(list) {
  * Huruf Awal: lihat gambar + arti Indonesia, pilih huruf pertama kata Inggrisnya.
  * Gambar yang dipakai selalu berbeda huruf awalnya supaya tidak ada dua jawaban benar.
  */
-export default function LetterGame({ settings, onBack, onStar, onWin }) {
+export default function LetterGame({ settings, onBack, onStar, onWin, onMistake }) {
   const lang = settings.lang || "id"
   const sound = settings.sound !== false
   const slow = settings.slow === true
@@ -65,10 +65,11 @@ export default function LetterGame({ settings, onBack, onStar, onWin }) {
         }
       } else {
         playSfx("wrong")
+        if (!wrong.length) onMistake?.(current.target.topic, current.target.key)
         setWrong(previous => (previous.includes(option) ? previous : [...previous, option]))
       }
     },
-    [done, solved, current, wrong.length, onStar, sound, slow]
+    [done, solved, current, wrong.length, onStar, sound, slow, onMistake]
   )
 
   const next = useCallback(() => {

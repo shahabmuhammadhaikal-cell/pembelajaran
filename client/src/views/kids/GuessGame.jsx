@@ -14,7 +14,7 @@ function shuffle(list) {
 }
 
 /** Tebak Kata: lihat gambar, pilih tulisan yang benar. */
-export default function GuessGame({ settings, onBack, onStar, onWin }) {
+export default function GuessGame({ settings, onBack, onStar, onWin, onMistake }) {
   const lang = settings.lang || "id"
   const sound = settings.sound !== false
   const slow = settings.slow === true
@@ -53,10 +53,11 @@ export default function GuessGame({ settings, onBack, onStar, onWin }) {
         if (sound) kidSaySpeech({ text: current.target[lang], lang, latin: current.target.tr }, { slow })
       } else {
         playSfx("wrong")
+        if (!wrong.length) onMistake?.(current.target.topic, current.target.key)
         setWrong(previous => (previous.includes(option.key + option.emoji) ? previous : [...previous, option.key + option.emoji]))
       }
     },
-    [done, solved, current, wrong.length, onStar, sound, lang, slow]
+    [done, solved, current, wrong.length, onStar, sound, lang, slow, onMistake]
   )
 
   const next = useCallback(() => {

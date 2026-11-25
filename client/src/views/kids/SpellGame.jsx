@@ -14,7 +14,7 @@ function shuffle(list) {
 }
 
 /** Susun Kata: susun huruf menjadi kata Inggris dari gambar + arti. */
-export default function SpellGame({ settings, onBack, onStar, onWin }) {
+export default function SpellGame({ settings, onBack, onStar, onWin, onMistake }) {
   const sound = settings.sound !== false
   const slow = settings.slow === true
   const roundsCount = ROUNDS_BY_LENGTH[settings.length] || ROUNDS_BY_LENGTH.normal
@@ -76,6 +76,7 @@ export default function SpellGame({ settings, onBack, onStar, onWin }) {
       }
       if (next.length === current.answer.length) {
         playSfx("wrong")
+        if (!tried) onMistake?.(current.item.topic, current.item.key)
         setTried(true)
         setWrongShake(true)
         if (resetTimer.current) clearTimeout(resetTimer.current)
@@ -86,7 +87,7 @@ export default function SpellGame({ settings, onBack, onStar, onWin }) {
         }, 800)
       }
     },
-    [solved, current, picked, tried, onStar, sound, slow]
+    [solved, current, picked, tried, onStar, sound, slow, onMistake]
   )
 
   const removeAt = useCallback(

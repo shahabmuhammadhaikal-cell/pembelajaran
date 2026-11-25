@@ -15,7 +15,7 @@ function shuffle(list) {
 }
 
 /** Dengar & Pilih: dengar kata, tap gambar yang tepat. */
-export default function ListenGame({ settings, onBack, onStar, onWin }) {
+export default function ListenGame({ settings, onBack, onStar, onWin, onMistake }) {
   const lang = settings.lang || "id"
   const sound = settings.sound !== false
   const slow = settings.slow === true
@@ -66,10 +66,11 @@ export default function ListenGame({ settings, onBack, onStar, onWin }) {
         }
       } else {
         playSfx("wrong")
+        if (!wrong.length) onMistake?.(current.target.topic, current.target.key)
         setWrong(previous => (previous.includes(option.key) ? previous : [...previous, option.key]))
       }
     },
-    [done, solved, current, wrong.length, onStar, sound, lang, slow]
+    [done, solved, current, wrong.length, onStar, sound, lang, slow, onMistake]
   )
 
   const next = useCallback(() => {

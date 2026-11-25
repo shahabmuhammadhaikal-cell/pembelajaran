@@ -25,7 +25,7 @@ function numberWord(value, lang) {
 }
 
 /** Hitung Yuk: hitung gambar lalu pilih angka yang benar. */
-export default function CountGame({ settings, onBack, onStar, onWin }) {
+export default function CountGame({ settings, onBack, onStar, onWin, onMistake }) {
   const lang = settings.lang || "id"
   const sound = settings.sound !== false
   const slow = settings.slow === true
@@ -72,10 +72,11 @@ export default function CountGame({ settings, onBack, onStar, onWin }) {
         }
       } else {
         playSfx("wrong")
+        if (!wrong.length) onMistake?.("numbers", `n${current.count}`)
         setWrong(previous => (previous.includes(value) ? previous : [...previous, value]))
       }
     },
-    [done, solved, current, wrong.length, onStar, sound, lang, slow]
+    [done, solved, current, wrong.length, onStar, sound, lang, slow, onMistake]
   )
 
   const next = useCallback(() => {

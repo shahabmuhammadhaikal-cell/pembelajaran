@@ -3463,3 +3463,108 @@
 .kid-weekly-speak:hover {
   filter: brightness(0.97);
 }
+
+/* ---------- pintasan kata sulit ---------- */
+.kid-hard {
+  margin: 12px 0 4px;
+  padding: 12px 14px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #fff5f6 0%, #fff9f0 100%);
+  border: 2px solid #ffd6dd;
+  box-shadow: 0 5px 0 rgba(43, 28, 70, 0.06);
+}
+
+.kid-hard-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.kid-hard-emoji {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  font-size: 22px;
+  border-radius: 14px;
+  background: #fff;
+  border: 2px solid rgba(255, 122, 162, 0.35);
+}
+
+.kid-hard-copy {
+  flex: 1;
+  display: grid;
+  gap: 1px;
+  min-width: 150px;
+}
+
+.kid-hard-copy strong {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.kid-hard-copy span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--kid-muted);
+  line-height: 1.35;
+}
+
+.kid-hard-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.kid-hard-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px 4px 10px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1.5px solid #ffd6dd;
+}
+
+.kid-hard-word {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--kid-ink);
+  cursor: pointer;
+}
+
+.kid-hard-count {
+  font-size: 10px;
+  font-weight: 800;
+  color: #b93b5b;
+}
+
+.kid-hard-forget {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: none;
+  background: #e8fbf1;
+  color: #0f8a5f;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+@media (max-width: 620px) {
+  .kid-hard .kid-btn {
+    width: 100%;
+  }
+}
