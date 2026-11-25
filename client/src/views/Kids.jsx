@@ -14,7 +14,7 @@ import { localDayKey } from "../lib/dates.js"
 import { useAuth } from "../state/AuthContext.jsx"
 import { useSync } from "../state/SyncContext.jsx"
 import { useApp } from "../state/useApp.js"
-import { kidSay, playSfx, stopKidsAudio, unlockKidsAudio } from "../lib/kidsAudio.js"
+import { kidSay, kidSaySpeech, playSfx, stopKidsAudio, unlockKidsAudio } from "../lib/kidsAudio.js"
 import Celebration from "../components/kids/Celebration.jsx"
 import LearnMode from "./kids/LearnMode.jsx"
 import ListenGame from "./kids/ListenGame.jsx"
@@ -23,6 +23,7 @@ import SpellGame from "./kids/SpellGame.jsx"
 import MatchGame from "./kids/MatchGame.jsx"
 import StoryMode from "./kids/StoryMode.jsx"
 import CountGame from "./kids/CountGame.jsx"
+import LetterGame from "./kids/LetterGame.jsx"
 
 const LANGUAGES = [
   { id: "id", label: "Indonesia", flag: "🇮🇩" },
@@ -33,6 +34,7 @@ const LANGUAGES = [
 const GAMES = [
   { id: "listen", emoji: "🎧", name: "Dengar & Pilih", desc: "Dengarkan suara, pilih gambarnya", color: "#4f8cff" },
   { id: "guess", emoji: "🔍", name: "Tebak Kata", desc: "Lihat gambar, pilih tulisannya", color: "#ffab3d" },
+  { id: "letter", emoji: "🅰️", name: "Huruf Awal", desc: "Tebak huruf pertama kata Inggris", color: "#0ea5e9" },
   { id: "spell", emoji: "✏️", name: "Susun Kata", desc: "Susun huruf jadi kata Inggris", color: "#a06bff" },
   { id: "match", emoji: "🧩", name: "Cocokkan Kartu", desc: "Temukan pasangan yang sama", color: "#ff7aa2" },
   { id: "count", emoji: "🔢", name: "Hitung Yuk", desc: "Hitung gambar, pilih angkanya", color: "#39c98c" }
@@ -76,6 +78,7 @@ export default function Kids() {
   const [celebration, setCelebration] = useState(null)
   const [confirmReset, setConfirmReset] = useState(false)
   const [gain, setGain] = useState(null)
+  const [query, setQuery] = useState("")
 
   const { user, configured: loginReady } = useAuth()
   const { queue: queueAccount, session } = useSync()
@@ -84,6 +87,8 @@ export default function Kids() {
   const appliedSession = useRef(0)
 
   const settings = kids.settings
+  const lang = settings.lang || "id"
+  const slow = settings.slow === true
   const stars = kids.stars || 0
   const levelInfo = levelProgress(stars)
   const today = localDayKey()
@@ -373,6 +378,58 @@ export default function Kids() {
     return { learned, total, percent: total ? Math.round((learned / total) * 100) : 0 }
   }, [resumeTopic, kids.learned])
 
+  // Pencarian lintas topik: nama topik, kata Indonesia/Inggris/Arab, atau transliterasi.
+  const search = query.trim().toLowerCase()
+  const searchActive = search.length >= 2
+  const searchHits = useMemo(() => {
+    if (search.length < 2) return []
+    const hits = []
+    for (const topic of KID_TOPICS) {
+      for (const entry of topic.items) {
+        const fields = [entry.id, entry.en, entry.ar, entry.tr]
+        if (!fields.some(value => String(value || "").toLowerCase().includes(search))) continue
+        hits.push({ ...entry, topicId: topic.id, topicLabel: topic.label, topicEmoji: topic.emoji })
+        if (hits.length >= 18) return hits
+      }
+    }
+    return hits
+  }, [search])
+  const hitTopicIds = useMemo(() => new Set(searchHits.map(hit => hit.topicId)), [searchHits])
+  const visibleGroups = useMemo(() => {
+    if (!searchActive) return topicGroups
+    return topicGroups
+      .map(group => ({
+        ...group,
+        topics: group.topics.filter(
+          topic =>
+            hitTopicIds.has(topic.id) || `${topic.label} ${topic.blurb}`.toLowerCase().includes(search)
+        )
+      }))
+      .filter(group => group.topics.length)
+  }, [topicGroups, searchActive, hitTopicIds, search])
+  const groupStats = useMemo(
+    () =>
+      topicGroups.map(group => {
+        const total = group.topics.reduce((sum, topic) => sum + topic.items.length, 0)
+        const learned = group.topics.reduce(
+          (sum, topic) => sum + topic.items.filter(entry => kids.learned[entry.key]).length,
+          0
+        )
+        return {
+          id: group.id,
+          emoji: group.emoji,
+          title: group.title,
+          total,
+          learned,
+          percent: total ? Math.round((learned / total) * 100) : 0
+        }
+      }),
+    [topicGroups, kids.learned]
+  )
+  const mastered = groupStats.reduce((sum, group) => sum + group.learned, 0)
+  const masteryPercent = totalWords ? Math.round((mastered / totalWords) * 100) : 0
+  const topStars = Math.max(1, ...profiles.map(profile => profile.stars || 0))
+
   const doneTopics = Object.keys(kids.topicsDone).length
   const stickerCount = Object.keys(kids.stickers).length
   const readCount = Object.keys(kids.stories).length
@@ -430,6 +487,9 @@ export default function Kids() {
         ) : null}
         {screen.name === "count" ? (
           <CountGame settings={settings} onBack={goHome} onStar={handleStar} onWin={handleGameWin} />
+        ) : null}
+        {screen.name === "letter" ? (
+          <LetterGame settings={settings} onBack={goHome} onStar={handleStar} onWin={handleGameWin} />
         ) : null}
         {celebration ? <Celebration data={celebration} onClose={() => setCelebration(null)} /> : null}
       </div>
@@ -659,7 +719,7 @@ export default function Kids() {
             </span>{" "}
             Mainkan dulu, yuk!
           </h3>
-          <span className="kid-section-sub">Lima permainan seru dengan suara</span>
+          <span className="kid-section-sub">Enam permainan seru dengan suara</span>
         </div>
         <div className="kid-games">
           {GAMES.map(game => (
@@ -742,8 +802,70 @@ export default function Kids() {
             {KID_TOPICS.length} topik · {totalWords} kata bergambar
           </span>
         </div>
+        <div className="kid-search">
+          <span className="kid-search-icon" aria-hidden>
+            🔎
+          </span>
+          <input
+            className="kid-search-input"
+            type="search"
+            value={query}
+            onChange={event => setQuery(event.target.value)}
+            placeholder="Cari kata atau topik, misal: kucing, apple, قطة"
+            aria-label="Cari kata atau topik"
+          />
+          {query ? (
+            <button className="kid-search-clear" onClick={() => setQuery("")} aria-label="Hapus pencarian">
+              ✕
+            </button>
+          ) : null}
+        </div>
+
+        {searchActive ? (
+          <div className="kid-search-hits">
+            <div className="kid-search-hits-head">
+              <strong>Hasil kata</strong>
+              <span>{searchHits.length ? `${searchHits.length} kata cocok` : "tidak ada"}</span>
+            </div>
+            {searchHits.length ? (
+              <div className="kid-search-list">
+                {searchHits.map(hit => (
+                  <button
+                    key={`${hit.topicId}-${hit.key}`}
+                    className="kid-search-hit"
+                    style={{ "--kid-accent": TOPIC_MAP[hit.topicId]?.color }}
+                    onClick={() => {
+                      playSfx("pop")
+                      kidSaySpeech(
+                        { text: hit[lang] || hit.en, lang, latin: hit.tr },
+                        { slow }
+                      )
+                    }}
+                    title={`Dengarkan ${hit[lang] || hit.en}`}
+                  >
+                    <span className="kid-search-hit-emoji" aria-hidden>
+                      {hit.emoji}
+                    </span>
+                    <span className="kid-search-hit-body">
+                      <strong className={lang === "ar" ? "kid-word-ar" : ""}>{hit[lang] || hit.en}</strong>
+                      <span>
+                        {hit.id} · {hit.en}
+                      </span>
+                    </span>
+                    <span className="kid-search-hit-topic">
+                      {hit.topicEmoji} {hit.topicLabel}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="kid-search-empty">Belum ada yang cocok. Coba kata lain ya 🙂</p>
+            )}
+          </div>
+        ) : null}
+
         <div className="kid-topic-groups">
-          {topicGroups.map(group => (
+          {visibleGroups.map(group => (
             <section key={group.id} className="kid-topic-group">
               <div className="kid-topic-group-head">
                 <h4>
@@ -825,6 +947,74 @@ export default function Kids() {
             )
           })}
         </div>
+      </section>
+
+      <section className="kid-section kid-report">
+        <div className="kid-section-head">
+          <h3>
+            <span className="kid-section-emoji" aria-hidden>
+              📊
+            </span>{" "}
+            Laporan belajar
+          </h3>
+          <span className="kid-section-sub">ringkasan untuk orang tua</span>
+        </div>
+        <div className="kid-report-grid">
+          <div className="kid-report-card">
+            <span className="kid-report-value">
+              {mastered}/{totalWords}
+            </span>
+            <span className="kid-report-label">kata dikuasai</span>
+            <span className="kid-report-bar">
+              <span style={{ width: `${masteryPercent}%` }} />
+            </span>
+          </div>
+          <div className="kid-report-card">
+            <span className="kid-report-value">
+              {doneTopics}/{KID_TOPICS.length}
+            </span>
+            <span className="kid-report-label">topik selesai</span>
+          </div>
+          <div className="kid-report-card">
+            <span className="kid-report-value">⭐ {stars}</span>
+            <span className="kid-report-label">bintang terkumpul</span>
+          </div>
+          <div className="kid-report-card">
+            <span className="kid-report-value">🔥 {streak}</span>
+            <span className="kid-report-label">hari beruntun</span>
+          </div>
+        </div>
+        <div className="kid-report-groups">
+          {groupStats.map(group => (
+            <div key={group.id} className="kid-report-group">
+              <span className="kid-report-group-head">
+                <span aria-hidden>{group.emoji}</span> {group.title}
+              </span>
+              <span className="kid-report-group-bar">
+                <span style={{ width: `${group.percent}%` }} />
+              </span>
+              <span className="kid-report-group-meta">
+                {group.learned}/{group.total}
+              </span>
+            </div>
+          ))}
+        </div>
+        {profiles.length > 1 ? (
+          <div className="kid-report-profiles">
+            <span className="kid-report-profiles-title">Bintang tiap anak</span>
+            {profiles.map(profile => (
+              <div key={profile.id} className="kid-report-profile">
+                <span className="kid-report-profile-name">
+                  {profile.avatar} {profile.name}
+                </span>
+                <span className="kid-report-profile-bar">
+                  <span style={{ width: `${Math.round(((profile.stars || 0) / topStars) * 100)}%` }} />
+                </span>
+                <span className="kid-report-profile-value">⭐ {profile.stars || 0}</span>
+              </div>
+            ))}
+          </div>
+        ) : null}
       </section>
 
       <p className="kid-tip">
