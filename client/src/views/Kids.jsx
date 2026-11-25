@@ -27,6 +27,7 @@ import StoryMode from "./kids/StoryMode.jsx"
 import CountGame from "./kids/CountGame.jsx"
 import LetterGame from "./kids/LetterGame.jsx"
 import WriteBoard from "./kids/WriteBoard.jsx"
+import SentenceGame from "./kids/SentenceGame.jsx"
 
 const LANGUAGES = [
   { id: "id", label: "Indonesia", flag: "🇮🇩" },
@@ -39,6 +40,7 @@ const GAMES = [
   { id: "guess", emoji: "🔍", name: "Tebak Kata", desc: "Lihat gambar, pilih tulisannya", color: "#ffab3d" },
   { id: "letter", emoji: "🅰️", name: "Huruf Awal", desc: "Tebak huruf pertama kata Inggris", color: "#0ea5e9" },
   { id: "spell", emoji: "✏️", name: "Susun Kata", desc: "Susun huruf jadi kata Inggris", color: "#a06bff" },
+  { id: "sentence", emoji: "🧱", name: "Susun Kalimat", desc: "Susun kata jadi kalimat Inggris", color: "#f97316" },
   { id: "match", emoji: "🧩", name: "Cocokkan Kartu", desc: "Temukan pasangan yang sama", color: "#ff7aa2" },
   { id: "count", emoji: "🔢", name: "Hitung Yuk", desc: "Hitung gambar, pilih angkanya", color: "#39c98c" }
 ]
@@ -577,6 +579,15 @@ export default function Kids() {
             onMistake={recordMistake}
           />
         ) : null}
+        {screen.name === "sentence" ? (
+          <SentenceGame
+            settings={settings}
+            onBack={goHome}
+            onStar={handleStar}
+            onWin={handleGameWin}
+            onMistake={recordMistake}
+          />
+        ) : null}
         {screen.name === "spell" ? (
           <SpellGame
             settings={settings}
@@ -908,7 +919,7 @@ export default function Kids() {
             </span>{" "}
             Mainkan dulu, yuk!
           </h3>
-          <span className="kid-section-sub">Enam permainan seru dengan suara</span>
+          <span className="kid-section-sub">Tujuh permainan seru dengan suara</span>
         </div>
         <div className="kid-games">
           {GAMES.map(game => (

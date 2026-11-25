@@ -757,6 +757,7 @@ export const KID_STICKERS = [
   { id: "game-listen", emoji: "🎧", name: "Telinga Emas", hint: "Skor 8+ di Dengar & Pilih" },
   { id: "game-guess", emoji: "🔍", name: "Detektif Kata", hint: "Skor 6+ di Tebak Kata" },
   { id: "game-letter", emoji: "🅰️", name: "Jago Huruf Awal", hint: "Skor 6+ di Huruf Awal" },
+  { id: "game-sentence", emoji: "🧱", name: "Perangkai Kalimat", hint: "Selesaikan Susun Kalimat dengan benar" },
   { id: "game-spell", emoji: "✏️", name: "Jago Menyusun", hint: "Skor 4+ di Susun Kata" },
   { id: "game-match", emoji: "🧩", name: "Jago Mencocokkan", hint: "Selesaikan Cocokkan Kartu" },
   { id: "game-count", emoji: "🔢", name: "Sahabat Angka", hint: "Selesaikan Hitung Yuk" }

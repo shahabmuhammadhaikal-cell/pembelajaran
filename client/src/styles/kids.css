@@ -3568,3 +3568,108 @@
     width: 100%;
   }
 }
+
+/* ---------- susun kalimat ---------- */
+.kid-sentence-card {
+  gap: 12px;
+}
+
+.kid-sentence-ar {
+  display: block;
+  margin-top: 2px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--kid-muted);
+}
+
+.kid-sentence-slots {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  min-height: 58px;
+  padding: 10px;
+  border-radius: 20px;
+  background: #faf7ff;
+  border: 2px dashed #e3d7ff;
+}
+
+.kid-sentence-slots.shake {
+  animation: kid-shake 0.4s ease-in-out;
+}
+
+.kid-sentence-slots.solved {
+  background: #e9fbf2;
+  border-color: #b9f0d6;
+}
+
+.kid-sentence-slot {
+  min-width: 64px;
+  min-height: 42px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  border: 2px dashed #d9ccf7;
+  background: #fff;
+  color: var(--kid-ink);
+  font-family: inherit;
+  font-size: clamp(14px, 3.4vw, 17px);
+  font-weight: 800;
+  transition: all 0.15s var(--ease);
+  cursor: pointer;
+}
+
+.kid-sentence-slot.filled {
+  border-style: solid;
+  border-color: #a06bff;
+  background: #f3ecff;
+  box-shadow: 0 3px 0 #d9ccf7;
+}
+
+.kid-sentence-slots.solved .kid-sentence-slot {
+  border-color: #7ee0b3;
+  background: #fff;
+  color: #146b46;
+  box-shadow: 0 3px 0 #b9f0d6;
+}
+
+.kid-sentence-tiles {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.kid-sentence-tile {
+  padding: 9px 14px;
+  border-radius: 14px;
+  background: linear-gradient(160deg, #fff, #fff2e4);
+  border: 3px solid #ffd9b5;
+  color: var(--kid-ink);
+  font-family: inherit;
+  font-size: clamp(14px, 3.4vw, 17px);
+  font-weight: 800;
+  box-shadow: 0 4px 0 #f4d3b2;
+  cursor: pointer;
+  transition: transform 0.12s var(--ease), opacity 0.12s var(--ease);
+}
+
+.kid-sentence-tile:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.kid-sentence-tile:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #f4d3b2;
+}
+
+.kid-sentence-tile.used {
+  opacity: 0.25;
+  box-shadow: none;
+  transform: none;
+}
+
+@media (max-width: 620px) {
+  .kid-sentence-slot {
+    min-width: 52px;
+  }
+}
