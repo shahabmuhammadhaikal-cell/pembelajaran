@@ -20,7 +20,7 @@ export const KIDS_PROFILE_DEFAULTS = {
   lastTopic: "",
   daily: { day: "", activities: 0, goal: 3, claimed: 0 },
   streak: { last: "", count: 0 },
-  settings: { lang: "id", slow: false, sound: true },
+  settings: { lang: "id", slow: false, sound: true, length: "normal" },
   resetAt: 0
 }
 

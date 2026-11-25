@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { KID_PLAY_ITEMS } from "../../lib/kidsData.js"
 import { kidSaySpeech, playSfx } from "../../lib/kidsAudio.js"
 
-const ROUNDS = 8
+const ROUNDS_BY_LENGTH = { short: 5, normal: 8, long: 12 }
 
 function shuffle(list) {
   const arr = list.slice()
@@ -18,6 +18,7 @@ export default function GuessGame({ settings, onBack, onStar, onWin }) {
   const lang = settings.lang || "id"
   const sound = settings.sound !== false
   const slow = settings.slow === true
+  const roundsCount = ROUNDS_BY_LENGTH[settings.length] || ROUNDS_BY_LENGTH.normal
   const [seed, setSeed] = useState(0)
   const [round, setRound] = useState(0)
   const [wrong, setWrong] = useState([])
@@ -27,7 +28,7 @@ export default function GuessGame({ settings, onBack, onStar, onWin }) {
   const wonRef = useRef(false)
 
   const rounds = useMemo(() => {
-    const targets = shuffle(KID_PLAY_ITEMS).slice(0, ROUNDS)
+    const targets = shuffle(KID_PLAY_ITEMS).slice(0, roundsCount)
     return targets.map(target => {
       const others = shuffle(
         KID_PLAY_ITEMS.filter(entry => entry[lang] !== target[lang] && entry.emoji !== target.emoji)
@@ -35,7 +36,7 @@ export default function GuessGame({ settings, onBack, onStar, onWin }) {
       return { target, options: shuffle([target, ...others]) }
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [seed, lang])
+  }, [seed, lang, roundsCount])
 
   const current = rounds[round]
 
@@ -102,7 +103,7 @@ export default function GuessGame({ settings, onBack, onStar, onWin }) {
             <span aria-hidden>🏠</span> Beranda
           </button>
           <div className="kid-subtitle">🔍 Tebak Kata</div>
-          <span className="kid-counter">{score}/{ROUNDS}</span>
+          <span className="kid-counter">{score}/{roundsCount}</span>
         </div>
         <div className="kid-result">
           <div className="kid-result-emoji" aria-hidden>

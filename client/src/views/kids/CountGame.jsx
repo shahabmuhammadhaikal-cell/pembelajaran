@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { TOPIC_MAP } from "../../lib/kidsData.js"
 import { kidSaySpeech, playSfx } from "../../lib/kidsAudio.js"
 
-const ROUNDS = 5
+const ROUNDS_BY_LENGTH = { short: 3, normal: 5, long: 8 }
 const OBJECTS = ["🍎", "🍌", "🐟", "⭐", "🎈", "🍓", "🐥", "🌸", "🍪", "🚗"]
 const NUMBERS = TOPIC_MAP.numbers.items
 
@@ -29,6 +29,7 @@ export default function CountGame({ settings, onBack, onStar, onWin }) {
   const lang = settings.lang || "id"
   const sound = settings.sound !== false
   const slow = settings.slow === true
+  const roundsCount = ROUNDS_BY_LENGTH[settings.length] || ROUNDS_BY_LENGTH.normal
   const [seed, setSeed] = useState(0)
   const [round, setRound] = useState(0)
   const [wrong, setWrong] = useState([])
@@ -39,7 +40,7 @@ export default function CountGame({ settings, onBack, onStar, onWin }) {
 
   const rounds = useMemo(
     () =>
-      Array.from({ length: ROUNDS }, () => {
+      Array.from({ length: roundsCount }, () => {
         const count = 1 + Math.floor(Math.random() * 10)
         const emoji = OBJECTS[Math.floor(Math.random() * OBJECTS.length)]
         const choices = new Set([count])
@@ -47,7 +48,7 @@ export default function CountGame({ settings, onBack, onStar, onWin }) {
         return { count, emoji, options: shuffle([...choices]) }
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [seed]
+    [seed, roundsCount]
   )
 
   const current = rounds[round]
@@ -121,7 +122,7 @@ export default function CountGame({ settings, onBack, onStar, onWin }) {
             <span aria-hidden>🏠</span> Beranda
           </button>
           <div className="kid-subtitle">🔢 Hitung Yuk</div>
-          <span className="kid-counter">{score}/{ROUNDS}</span>
+          <span className="kid-counter">{score}/{roundsCount}</span>
         </div>
         <div className="kid-result">
           <div className="kid-result-emoji" aria-hidden>
@@ -152,7 +153,7 @@ export default function CountGame({ settings, onBack, onStar, onWin }) {
         </button>
         <div className="kid-subtitle">🔢 Hitung Yuk</div>
         <span className="kid-counter">
-          {round + 1}/{ROUNDS}
+          {round + 1}/{roundsCount}
         </span>
       </div>
 

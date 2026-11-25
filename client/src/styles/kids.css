@@ -3373,3 +3373,93 @@
     box-shadow: none;
   }
 }
+
+/* ---------- kata baru minggu ini ---------- */
+.kid-weekly {
+  display: flex;
+  gap: 10px;
+  padding: 4px 2px 10px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.kid-weekly-card {
+  flex: none;
+  width: 156px;
+  display: grid;
+  gap: 2px;
+  padding: 12px;
+  border-radius: 20px;
+  background: linear-gradient(
+    165deg,
+    #ffffff 0%,
+    color-mix(in srgb, var(--kid-accent, #4f8cff) 12%, #ffffff) 100%
+  );
+  border: 3px solid #fff;
+  box-shadow: 0 5px 0 rgba(43, 28, 70, 0.08);
+  scroll-snap-align: start;
+}
+
+.kid-weekly-emoji {
+  font-size: 32px;
+  line-height: 1.1;
+}
+
+.kid-weekly-word {
+  font-size: 15.5px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.kid-weekly-sub {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--kid-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kid-weekly-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.kid-weekly-speak {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  border: 2px solid rgba(43, 28, 70, 0.08);
+  background: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.kid-weekly-topic {
+  flex: 1;
+  min-width: 0;
+  padding: 5px 8px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--kid-ink);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.kid-weekly-topic:hover,
+.kid-weekly-speak:hover {
+  filter: brightness(0.97);
+}

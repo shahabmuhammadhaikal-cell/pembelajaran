@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { KID_PLAY_ITEMS } from "../../lib/kidsData.js"
 import { kidSay, kidSaySpeech, kidSpeech, playSfx } from "../../lib/kidsAudio.js"
 
-const ROUNDS = 10
+const ROUNDS_BY_LENGTH = { short: 6, normal: 10, long: 14 }
 const PRAISE = ["Hebat!", "Keren!", "Pintar!", "Luar biasa!", "Bagus sekali!"]
 
 function shuffle(list) {
@@ -19,6 +19,7 @@ export default function ListenGame({ settings, onBack, onStar, onWin }) {
   const lang = settings.lang || "id"
   const sound = settings.sound !== false
   const slow = settings.slow === true
+  const roundsCount = ROUNDS_BY_LENGTH[settings.length] || ROUNDS_BY_LENGTH.normal
   const [seed, setSeed] = useState(0)
   const [round, setRound] = useState(0)
   const [wrong, setWrong] = useState([])
@@ -28,13 +29,13 @@ export default function ListenGame({ settings, onBack, onStar, onWin }) {
   const wonRef = useRef(false)
 
   const rounds = useMemo(() => {
-    const targets = shuffle(KID_PLAY_ITEMS).slice(0, ROUNDS)
+    const targets = shuffle(KID_PLAY_ITEMS).slice(0, roundsCount)
     return targets.map(target => {
       const others = shuffle(KID_PLAY_ITEMS.filter(entry => entry.emoji !== target.emoji)).slice(0, 3)
       return { target, options: shuffle([target, ...others]) }
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [seed])
+  }, [seed, roundsCount])
 
   const current = rounds[round]
 
@@ -115,7 +116,7 @@ export default function ListenGame({ settings, onBack, onStar, onWin }) {
             <span aria-hidden>🏠</span> Beranda
           </button>
           <div className="kid-subtitle">🎧 Dengar &amp; Pilih</div>
-          <span className="kid-counter">{score}/10</span>
+          <span className="kid-counter">{score}/{roundsCount}</span>
         </div>
 
         <div className="kid-result">

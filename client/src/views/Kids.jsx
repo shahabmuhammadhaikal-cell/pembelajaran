@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   KID_TOPICS,
   KID_TOPIC_GROUPS,
+  KID_ROUND_OPTIONS,
+  KID_PLAY_ITEMS,
   TOPIC_MAP,
   KID_STICKERS,
   KID_STAR_MILESTONES,
@@ -446,6 +448,23 @@ export default function Kids() {
   const masteryPercent = totalWords ? Math.round((mastered / totalWords) * 100) : 0
   const topStars = Math.max(1, ...profiles.map(profile => profile.stars || 0))
 
+  // Enam kata pilihan yang berganti tiap minggu, dipilih deterministik dari tanggal.
+  const weekWords = useMemo(() => {
+    const pool = KID_PLAY_ITEMS.filter(entry => entry.emoji && entry.emoji !== "🔢")
+    const start = new Date(new Date().getFullYear(), 0, 1).getTime()
+    const week = Math.floor((Date.now() - start) / (7 * 24 * 60 * 60 * 1000))
+    const picked = []
+    const seen = new Set()
+    for (let step = 0; step < pool.length && picked.length < 6; step += 1) {
+      const entry = pool[(week * 11 + step * 17) % pool.length]
+      const signature = `${entry.topic}:${entry.key}`
+      if (seen.has(signature)) continue
+      seen.add(signature)
+      picked.push(entry)
+    }
+    return picked
+  }, [])
+
   const doneTopics = Object.keys(kids.topicsDone).length
   const stickerCount = Object.keys(kids.stickers).length
   const readCount = Object.keys(kids.stories).length
@@ -651,6 +670,24 @@ export default function Kids() {
       </div>
 
       <div className="kid-tools">
+        <span className="kid-tools-label">Panjang permainan:</span>
+        {KID_ROUND_OPTIONS.map(option => (
+          <button
+            key={option.id}
+            className={`kid-chip ${settings.length === option.id || (!settings.length && option.id === "normal") ? "on" : ""}`}
+            onClick={() => {
+              playSfx("tap")
+              setSetting("length", option.id)
+            }}
+            aria-pressed={(settings.length || "normal") === option.id}
+            title={option.hint}
+          >
+            <span aria-hidden>{option.emoji}</span> {option.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="kid-tools">
         <span className="kid-tools-label">Bahasa kata:</span>
         {LANGUAGES.map(language => (
           <button
@@ -760,6 +797,52 @@ export default function Kids() {
                 ▶
               </span>
             </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="kid-section">
+        <div className="kid-section-head">
+          <h3>
+            <span className="kid-section-emoji" aria-hidden>
+              🌟
+            </span>{" "}
+            Kata baru minggu ini
+          </h3>
+          <span className="kid-section-sub">6 kata pilihan · berganti tiap minggu</span>
+        </div>
+        <div className="kid-weekly">
+          {weekWords.map(entry => (
+            <div
+              key={`${entry.topic}-${entry.key}`}
+              className="kid-weekly-card"
+              style={{ "--kid-accent": TOPIC_MAP[entry.topic]?.color }}
+            >
+              <span className="kid-weekly-emoji" aria-hidden>
+                {entry.emoji}
+              </span>
+              <span className={`kid-weekly-word ${lang === "ar" ? "kid-word-ar" : ""}`}>
+                {entry[lang] || entry.en}
+              </span>
+              <span className="kid-weekly-sub">
+                {entry.id} · {entry.en}
+              </span>
+              <span className="kid-weekly-actions">
+                <button
+                  className="kid-weekly-speak"
+                  onClick={() => {
+                    playSfx("pop")
+                    kidSaySpeech({ text: entry[lang] || entry.en, lang, latin: entry.tr }, { slow })
+                  }}
+                  aria-label={`Dengarkan ${entry[lang] || entry.en}`}
+                >
+                  🔊
+                </button>
+                <button className="kid-weekly-topic" onClick={() => openTopic(entry.topic)}>
+                  {entry.topicLabel} →
+                </button>
+              </span>
+            </div>
           ))}
         </div>
       </section>

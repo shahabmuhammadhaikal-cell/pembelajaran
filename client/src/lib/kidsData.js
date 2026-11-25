@@ -721,6 +721,13 @@ export const KID_TOPIC_GROUPS = [
   { id: "profesi", emoji: "⚽", title: "Kegiatan & Profesi", ids: ["verbs", "jobs", "sports", "music"] }
 ]
 
+/** Panjang permainan: jumlah soal/pasangan menyesuaikan usia dan waktu anak. */
+export const KID_ROUND_OPTIONS = [
+  { id: "short", label: "Pendek", emoji: "🐣", hint: "3–6 soal" },
+  { id: "normal", label: "Sedang", emoji: "🦊", hint: "5–10 soal" },
+  { id: "long", label: "Panjang", emoji: "🦅", hint: "8–14 soal" }
+]
+
 export const KID_STAR_MILESTONES = [
   { stars: 1, id: "star-1" },
   { stars: 15, id: "star-15" },

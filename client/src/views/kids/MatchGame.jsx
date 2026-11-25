@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { KID_PLAY_ITEMS } from "../../lib/kidsData.js"
 import { kidSaySpeech, playSfx } from "../../lib/kidsAudio.js"
 
-const PAIRS = 6
+const PAIRS_BY_LENGTH = { short: 4, normal: 6, long: 8 }
 
 function shuffle(list) {
   const arr = list.slice()
@@ -18,6 +18,7 @@ export default function MatchGame({ settings, onBack, onStar, onWin }) {
   const lang = settings.lang || "id"
   const sound = settings.sound !== false
   const slow = settings.slow === true
+  const pairsCount = PAIRS_BY_LENGTH[settings.length] || PAIRS_BY_LENGTH.normal
   const [seed, setSeed] = useState(0)
   const [open, setOpen] = useState([])
   const [matched, setMatched] = useState([])
@@ -34,7 +35,7 @@ export default function MatchGame({ settings, onBack, onStar, onWin }) {
       if (seenEmoji.has(entry.emoji)) continue
       seenEmoji.add(entry.emoji)
       unique.push(entry)
-      if (unique.length >= PAIRS) break
+      if (unique.length >= pairsCount) break
     }
     const cards = unique.flatMap((entry, index) => [
       { uid: `${seed}-${index}-a`, pairKey: `${entry.key}|${entry.emoji}`, entry },
@@ -42,7 +43,7 @@ export default function MatchGame({ settings, onBack, onStar, onWin }) {
     ])
     return shuffle(cards)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [seed])
+  }, [seed, pairsCount])
 
   useEffect(
     () => () => {
@@ -127,7 +128,7 @@ export default function MatchGame({ settings, onBack, onStar, onWin }) {
       </div>
 
       <div className="kid-match-info">
-        <span className="kid-score-pill">🧩 {found}/{PAIRS}</span>
+        <span className="kid-score-pill">🧩 {found}/{pairsCount}</span>
         <span className="kid-score-pill">👣 {moves} langkah</span>
         <span className="kid-match-tip">Balik dua kartu, cari gambar yang sama.</span>
       </div>

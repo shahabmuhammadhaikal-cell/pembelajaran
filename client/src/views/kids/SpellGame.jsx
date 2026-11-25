@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { KID_SPELL_ITEMS } from "../../lib/kidsData.js"
 import { kidSay, playSfx } from "../../lib/kidsAudio.js"
 
-const ROUNDS = 5
+const ROUNDS_BY_LENGTH = { short: 3, normal: 5, long: 8 }
 
 function shuffle(list) {
   const arr = list.slice()
@@ -17,6 +17,7 @@ function shuffle(list) {
 export default function SpellGame({ settings, onBack, onStar, onWin }) {
   const sound = settings.sound !== false
   const slow = settings.slow === true
+  const roundsCount = ROUNDS_BY_LENGTH[settings.length] || ROUNDS_BY_LENGTH.normal
   const [seed, setSeed] = useState(0)
   const [round, setRound] = useState(0)
   const [picked, setPicked] = useState([])
@@ -40,11 +41,11 @@ export default function SpellGame({ settings, onBack, onStar, onWin }) {
         answer,
         letters: shuffle(answer.split("").map((char, index) => ({ char, id: `${seed}-${index}` })))
       })
-      if (result.length >= ROUNDS) break
+      if (result.length >= roundsCount) break
     }
     return result
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [seed])
+  }, [seed, roundsCount])
 
   const current = rounds[round]
 
@@ -152,7 +153,7 @@ export default function SpellGame({ settings, onBack, onStar, onWin }) {
             <span aria-hidden>🏠</span> Beranda
           </button>
           <div className="kid-subtitle">✏️ Susun Kata</div>
-          <span className="kid-counter">{score}/{ROUNDS}</span>
+          <span className="kid-counter">{score}/{roundsCount}</span>
         </div>
         <div className="kid-result">
           <div className="kid-result-emoji" aria-hidden>

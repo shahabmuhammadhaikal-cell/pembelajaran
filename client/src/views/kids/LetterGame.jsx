@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { KID_PLAY_ITEMS } from "../../lib/kidsData.js"
 import { kidSaySpeech, playSfx } from "../../lib/kidsAudio.js"
 
-const ROUNDS = 8
+const ROUNDS_BY_LENGTH = { short: 5, normal: 8, long: 12 }
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")
 
 function shuffle(list) {
@@ -22,6 +22,7 @@ export default function LetterGame({ settings, onBack, onStar, onWin }) {
   const lang = settings.lang || "id"
   const sound = settings.sound !== false
   const slow = settings.slow === true
+  const roundsCount = ROUNDS_BY_LENGTH[settings.length] || ROUNDS_BY_LENGTH.normal
   const [seed, setSeed] = useState(0)
   const [round, setRound] = useState(0)
   const [wrong, setWrong] = useState([])
@@ -40,11 +41,11 @@ export default function LetterGame({ settings, onBack, onStar, onWin }) {
       usedLetters.add(letter)
       const distractors = shuffle(LETTERS.filter(value => value !== letter)).slice(0, 3)
       picked.push({ target: entry, letter, options: shuffle([letter, ...distractors]) })
-      if (picked.length >= ROUNDS) break
+      if (picked.length >= roundsCount) break
     }
     return picked
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [seed])
+  }, [seed, roundsCount])
 
   const current = rounds[round]
 
@@ -115,7 +116,7 @@ export default function LetterGame({ settings, onBack, onStar, onWin }) {
           </button>
           <div className="kid-subtitle">🅰️ Huruf Awal</div>
           <span className="kid-counter">
-            {score}/{ROUNDS}
+            {score}/{roundsCount}
           </span>
         </div>
         <div className="kid-result">
