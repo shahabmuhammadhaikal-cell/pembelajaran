@@ -24,6 +24,7 @@ import MatchGame from "./kids/MatchGame.jsx"
 import StoryMode from "./kids/StoryMode.jsx"
 import CountGame from "./kids/CountGame.jsx"
 import LetterGame from "./kids/LetterGame.jsx"
+import WriteBoard from "./kids/WriteBoard.jsx"
 
 const LANGUAGES = [
   { id: "id", label: "Indonesia", flag: "🇮🇩" },
@@ -79,6 +80,7 @@ export default function Kids() {
   const [confirmReset, setConfirmReset] = useState(false)
   const [gain, setGain] = useState(null)
   const [query, setQuery] = useState("")
+  const [topicFilter, setTopicFilter] = useState("all")
 
   const { user, configured: loginReady } = useAuth()
   const { queue: queueAccount, session } = useSync()
@@ -303,6 +305,12 @@ export default function Kids() {
     setScreen({ name: gameId })
   }, [])
 
+  const openWriting = useCallback(() => {
+    unlockKidsAudio()
+    playSfx("pop")
+    setScreen({ name: "write" })
+  }, [])
+
   const openStory = useCallback(storyId => {
     unlockKidsAudio()
     playSfx("pop")
@@ -396,17 +404,25 @@ export default function Kids() {
   }, [search])
   const hitTopicIds = useMemo(() => new Set(searchHits.map(hit => hit.topicId)), [searchHits])
   const visibleGroups = useMemo(() => {
-    if (!searchActive) return topicGroups
+    const matchesFilter = topic =>
+      topicFilter === "all"
+        ? true
+        : topicFilter === "done"
+          ? Boolean(kids.topicsDone[topic.id])
+          : !kids.topicsDone[topic.id]
     return topicGroups
       .map(group => ({
         ...group,
-        topics: group.topics.filter(
-          topic =>
+        topics: group.topics.filter(topic => {
+          if (!matchesFilter(topic)) return false
+          if (!searchActive) return true
+          return (
             hitTopicIds.has(topic.id) || `${topic.label} ${topic.blurb}`.toLowerCase().includes(search)
-        )
+          )
+        })
       }))
       .filter(group => group.topics.length)
-  }, [topicGroups, searchActive, hitTopicIds, search])
+  }, [topicGroups, searchActive, hitTopicIds, search, topicFilter, kids.topicsDone])
   const groupStats = useMemo(
     () =>
       topicGroups.map(group => {
@@ -490,6 +506,9 @@ export default function Kids() {
         ) : null}
         {screen.name === "letter" ? (
           <LetterGame settings={settings} onBack={goHome} onStar={handleStar} onWin={handleGameWin} />
+        ) : null}
+        {screen.name === "write" ? (
+          <WriteBoard letters={TOPIC_MAP.hijaiyah.items} onBack={goHome} />
         ) : null}
         {celebration ? <Celebration data={celebration} onClose={() => setCelebration(null)} /> : null}
       </div>
@@ -791,6 +810,21 @@ export default function Kids() {
       </section>
 
       <section className="kid-section">
+        <div className="kid-write-banner">
+          <span className="kid-write-banner-art" aria-hidden>
+            ✍️
+          </span>
+          <div className="kid-write-banner-copy">
+            <strong>Latihan menulis huruf Arab</strong>
+            <span>28 huruf hijaiyah dengan huruf contoh besar dan papan tulis sentuh.</span>
+          </div>
+          <button className="kid-btn kid-btn-primary kid-btn-sm" onClick={openWriting}>
+            Coba tulis →
+          </button>
+        </div>
+      </section>
+
+      <section className="kid-section">
         <div className="kid-section-head">
           <h3>
             <span className="kid-section-emoji" aria-hidden>
@@ -819,6 +853,26 @@ export default function Kids() {
               ✕
             </button>
           ) : null}
+        </div>
+
+        <div className="kid-filters" role="group" aria-label="Saring topik">
+          {[
+            { id: "all", label: "Semua topik" },
+            { id: "todo", label: "Belum selesai" },
+            { id: "done", label: "Sudah selesai" }
+          ].map(filter => (
+            <button
+              key={filter.id}
+              className={`kid-chip ${topicFilter === filter.id ? "on" : ""}`}
+              onClick={() => {
+                playSfx("tap")
+                setTopicFilter(filter.id)
+              }}
+              aria-pressed={topicFilter === filter.id}
+            >
+              {filter.label}
+            </button>
+          ))}
         </div>
 
         {searchActive ? (
@@ -862,6 +916,12 @@ export default function Kids() {
               <p className="kid-search-empty">Belum ada yang cocok. Coba kata lain ya 🙂</p>
             )}
           </div>
+        ) : null}
+
+        {!visibleGroups.length ? (
+          <p className="kid-search-empty">
+            Tidak ada topik pada filter ini. Coba pilih “Semua topik” atau kata pencarian lain.
+          </p>
         ) : null}
 
         <div className="kid-topic-groups">
@@ -958,6 +1018,9 @@ export default function Kids() {
             Laporan belajar
           </h3>
           <span className="kid-section-sub">ringkasan untuk orang tua</span>
+          <button className="kid-btn kid-btn-ghost kid-btn-sm kid-print" onClick={() => window.print()}>
+            🖨️ Cetak laporan
+          </button>
         </div>
         <div className="kid-report-grid">
           <div className="kid-report-card">

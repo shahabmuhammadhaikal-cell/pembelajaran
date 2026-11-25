@@ -206,6 +206,73 @@ export const KID_STORIES = [
       { q: "Apa yang dibeli Ibu?", options: ["Baju baru", "Buku baru", "Tas baru"], answer: 0 },
       { q: "Dengan siapa aku bersalaman?", options: ["Tetangga", "Guru", "Dokter"], answer: 0 }
     ]
+  },
+  {
+    id: "pagi",
+    title: "Pagi yang Sibuk",
+    titleEn: "A Busy Morning",
+    titleAr: "صباح مزدحم",
+    emoji: "🌅",
+    cover: ["🌅", "🪥", "🥣"],
+    color: "#ffab3d",
+    level: "Mudah",
+    sentences: [
+      sentence("🌅", "Matahari terbit di pagi hari.", "The sun rises in the morning.", "تَشْرُقُ الشَّمْسُ فِي الصَّبَاح.", "Tashruqu ash-shamsu fī aṣ-ṣabāḥ"),
+      sentence("⏰", "Aku bangun saat alarm berbunyi.", "I wake up when the alarm rings.", "أَسْتَيْقِظُ عِنْدَمَا يَرِنُّ الْمُنَبِّه.", "Astayqiẓu ʿindamā yarinnu al-munabbih"),
+      sentence("🛏️", "Aku merapikan tempat tidur.", "I make my bed.", "أُرَتِّبُ سَرِيرِي.", "Urattibu sarīrī"),
+      sentence("🪥", "Aku menyikat gigi.", "I brush my teeth.", "أُنَظِّفُ أَسْنَانِي.", "Unaẓẓifu asnānī"),
+      sentence("🚿", "Lalu aku mandi.", "Then I take a bath.", "ثُمَّ أَسْتَحِمُّ.", "Thumma astaḥimmu"),
+      sentence("🥣", "Aku sarapan bubur.", "I eat porridge for breakfast.", "أَتَنَاوَلُ الْعَصِيدَةَ فِي الْفُطُور.", "Atanāwalu al-ʿaṣīdata fī al-fuṭūr"),
+      sentence("🎒", "Setelah itu aku siap ke sekolah.", "After that I get ready for school.", "بَعْدَ ذَلِكَ أَسْتَعِدُّ لِلْمَدْرَسَة.", "Baʿda dhālika astaʿiddu lil-madrasa")
+    ],
+    questions: [
+      { q: "Apa yang dilakukan setelah bangun?", options: ["Merapikan tempat tidur", "Menonton TV", "Bermain bola"], answer: 0 },
+      { q: "Apa sarapan pagi itu?", options: ["Bubur", "Roti", "Nasi goreng"], answer: 0 }
+    ]
+  },
+  {
+    id: "taman",
+    title: "Bermain di Taman",
+    titleEn: "Playing in the Park",
+    titleAr: "اللعب في الحديقة",
+    emoji: "🌳",
+    cover: ["🌳", "⚽", "🦆"],
+    color: "#39c98c",
+    level: "Sedang",
+    sentences: [
+      sentence("🌳", "Sore hari aku pergi ke taman.", "In the afternoon I go to the park.", "فِي الْعَصْرِ ذَهَبْتُ إِلَى الْحَدِيقَة.", "Fī al-ʿaṣri dhahabtu ilā al-ḥadīqa"),
+      sentence("⚽", "Aku bermain bola dengan teman.", "I play ball with my friend.", "أَلْعَبُ بِالْكُرَةِ مَعَ صَدِيقِي.", "Alʿabu bil-kurati maʿa ṣadīqī"),
+      sentence("🦆", "Ada bebek berenang di kolam.", "There are ducks swimming in the pond.", "هُنَاكَ بَطٌّ يَسْبَحُ فِي الْبِرْكَة.", "Hunāka baṭṭun yasbaḥu fī al-birka"),
+      sentence("🍦", "Kami membeli es krim.", "We buy ice cream.", "اِشْتَرَيْنَا آيْس كِرِيم.", "Ishtaraynā āys kirīm"),
+      sentence("🌇", "Matahari mulai terbenam.", "The sun begins to set.", "بَدَأَتِ الشَّمْسُ تَغْرُب.", "Badaʾati ash-shamsu taghrub"),
+      sentence("😊", "Aku berjanji main lagi besok.", "I promise to play again tomorrow.", "وَعَدْتُ نَفْسِي بِاللَّعِبِ غَدًا.", "Waʿadtu nafsī bil-laʿibi ghadan")
+    ],
+    questions: [
+      { q: "Dengan siapa bermain bola?", options: ["Teman", "Guru", "Adik"], answer: 0 },
+      { q: "Apa yang dibeli di taman?", options: ["Es krim", "Jus", "Kue"], answer: 0 }
+    ]
+  },
+  {
+    id: "dokter-gigi",
+    title: "Ke Dokter Gigi",
+    titleEn: "Going to the Dentist",
+    titleAr: "عند طبيب الأسنان",
+    emoji: "🦷",
+    cover: ["🦷", "🪥", "😁"],
+    color: "#4f8cff",
+    level: "Sedang",
+    sentences: [
+      sentence("🦷", "Gigiku sakit sejak kemarin.", "My tooth has hurt since yesterday.", "سِنِّي يُؤْلِمُنِي مُنْذُ أَمْس.", "Sinnī yuʾlimunī mundhu ams"),
+      sentence("🏥", "Ibu membawaku ke dokter gigi.", "Mother takes me to the dentist.", "أَخَذَتْنِي أُمِّي إِلَى طَبِيبِ الْأَسْنَان.", "Akhadhatnī ummī ilā ṭabībi al-asnān"),
+      sentence("🪑", "Aku duduk di kursi besar.", "I sit on a big chair.", "جَلَسْتُ عَلَى كُرْسِيٍّ كَبِير.", "Jalastu ʿalā kursiyyin kabīr"),
+      sentence("🔦", "Dokter memeriksa gigiku.", "The doctor checks my tooth.", "فَحَصَ الطَّبِيبُ سِنِّي.", "Faḥaṣa aṭ-ṭabību sinnī"),
+      sentence("😬", "Sedikit sakit, tapi aku berani.", "It hurts a little, but I am brave.", "يُؤْلِمُ قَلِيلًا لَكِنَّنِي شُجَاع.", "Yuʾlimu qalīlan lākinnanī shujāʿ"),
+      sentence("😁", "Sekarang gigiku sehat lagi.", "Now my tooth is healthy again.", "الْآنَ سِنِّي صَحِيحَةٌ مُجَدَّدًا.", "Al-āna sinnī ṣaḥīḥatun mujaddadan")
+    ],
+    questions: [
+      { q: "Siapa yang membawa ke dokter gigi?", options: ["Ibu", "Ayah", "Kakak"], answer: 0 },
+      { q: "Bagaimana perasaan anak itu?", options: ["Berani", "Takut", "Sedih"], answer: 0 }
+    ]
   }
 ]
 
