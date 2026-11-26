@@ -23,7 +23,19 @@ function timeLabel(value) {
 
 export default function AccountScreen() {
   const router = useRouter()
-  const { session, busy, error, status, lastSync, login, register, resetPassword, logout } = useAccount()
+  const {
+    session,
+    busy,
+    error,
+    status,
+    lastSync,
+    googleReady,
+    login,
+    register,
+    loginWithGoogle,
+    resetPassword,
+    logout
+  } = useAccount()
   const [email, setEmail] = useState(session ? session.email : "")
   const [password, setPassword] = useState("")
   const [notice, setNotice] = useState("")
@@ -141,6 +153,27 @@ export default function AccountScreen() {
               />
             </View>
           </Card>
+
+          <View style={styles.divider}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>atau</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          <Card style={styles.stack}>
+            <Button
+              label={busy ? "Menghubungkan…" : "Lanjutkan dengan Google"}
+              variant="ghost"
+              onPress={() => loginWithGoogle()}
+              disabled={busy}
+            />
+            <Text style={[text.muted, styles.googleNote]}>
+              {googleReady
+                ? "Memakai akun Google yang sama dengan login web (Firebase Authentication)."
+                : "Masuk Google di APK perlu client ID Android/iOS dari Google Cloud Console. Untuk sekarang pakai email dan password."}
+            </Text>
+          </Card>
+
           <Text style={[text.muted, styles.note]}>
             Pakai akun Firebase yang sama seperti aplikasi web. Tanpa akun pun aplikasi tetap jalan
             dengan progres tersimpan di perangkat.
@@ -170,6 +203,10 @@ const styles = StyleSheet.create({
     color: colors.ink
   },
   row: { flexDirection: "row", gap: 8 },
+  divider: { flexDirection: "row", alignItems: "center", gap: 10 },
+  dividerLine: { flex: 1, height: 2, backgroundColor: colors.line, borderRadius: 2 },
+  dividerText: { fontSize: 11, fontWeight: "800", color: colors.muted, textTransform: "uppercase" },
+  googleNote: { textAlign: "center" },
   grow: { flex: 1 },
   note: { textAlign: "center" },
   error: {

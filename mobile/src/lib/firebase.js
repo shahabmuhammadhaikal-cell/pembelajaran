@@ -23,6 +23,19 @@ export const FIREBASE_CONFIG = {
   appId: "1:584399346944:web:2c21af2603351aff8627e5"
 }
 
+/**
+ * Client ID OAuth Google milik project Firebase yang sama (nilai publik).
+ * Web client dipakai untuk login di browser; APK/dev build butuh client
+ * Android/iOS sendiri dari Google Cloud Console (isi lewat EXPO_PUBLIC_*).
+ */
+export const GOOGLE_CLIENT_IDS = {
+  web:
+    process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ||
+    "584399346944-25ulgena5h9vmi9s6hq1mjdl6th2s6fa.apps.googleusercontent.com",
+  ios: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || "",
+  android: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID || ""
+}
+
 function normalizeBase(value) {
   const raw = String(value || "").trim()
   if (!raw) return ""
@@ -150,6 +163,51 @@ export async function signUpEmail(email, password) {
   return session
 }
 
+/**
+ * Tukar ID token Google menjadi sesi Firebase.
+ * Akun Google yang sudah ada di project ini langsung masuk; yang belum ada
+ * dibuatkan akun Firebase baru (provider google.com).
+ */
+export async function signInWithGoogleIdToken(idToken) {
+  const token = String(idToken || "").trim()
+  if (!token) throw authError("Token Google tidak ditemukan", "INVALID_IDP_RESPONSE")
+  const data = await postJson(`${IDENTITY}:signInWithIdp?key=${FIREBASE_CONFIG.apiKey}`, {
+    postBody: `id_token=${encodeURIComponent(token)}&providerId=google.com`,
+    requestUri: `https://${FIREBASE_CONFIG.authDomain}/__/auth/handler`,
+    returnSecureToken: true
+  })
+  const session = toSession(data)
+  if (!session.email) {
+    const claims = decodeIdTokenClaims(token)
+    session.email = claims.email || ""
+  }
+  await storeSession(session)
+  return session
+}
+
+/** Baca klaim ID token (JWT) tanpa verifikasi; hanya untuk tampilan. */
+export function decodeIdTokenClaims(idToken) {
+  try {
+    const payload = String(idToken || "").split(".")[1]
+    if (!payload) return {}
+    const base64 = payload.replace(/-/g, "+").replace(/_/g, "/")
+    const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4)
+    const binary =
+      typeof atob === "function"
+        ? atob(padded)
+        : Buffer.from(padded, "base64").toString("binary")
+    const json = decodeURIComponent(
+      binary
+        .split("")
+        .map(char => `%${`00${char.charCodeAt(0).toString(16)}`.slice(-2)}`)
+        .join("")
+    )
+    return JSON.parse(json)
+  } catch {
+    return {}
+  }
+}
+
 /** Kirim email pengaturan ulang password. */
 export async function sendPasswordReset(email) {
   await postJson(`${IDENTITY}:sendOobCode?key=${FIREBASE_CONFIG.apiKey}`, {
@@ -179,6 +237,12 @@ const AUTH_MESSAGES = {
   "auth/network-request-failed": "Jaringan bermasalah. Periksa koneksi lalu coba lagi.",
   auth_required: "Token login tidak ditemukan.",
   auth_invalid: "Sesi login tidak valid atau kedaluwarsa. Silakan masuk lagi.",
+  INVALID_IDP_RESPONSE: "Token Google tidak valid atau sudah kedaluwarsa. Coba lagi.",
+  FEDERATED_USER_ID_ALREADY_LINKED:
+    "Akun Google itu sudah terhubung ke akun lain. Masuk dengan metode yang dipakai sebelumnya.",
+  NEED_CONFIRMATION: "Email ini perlu dikonfirmasi sebelum bisa masuk.",
+  "auth/account-exists-with-different-credential":
+    "Email ini sudah terdaftar dengan password. Masuk dengan email/password dulu, lalu hubungkan Google.",
   auth_unconfigured:
     "Server belum punya kredensial Firebase (FIREBASE_SERVICE_ACCOUNT), jadi progres belum bisa disimpan."
 }
@@ -187,7 +251,10 @@ const AUTH_MESSAGES = {
 export function authErrorMessage(error) {
   if (!error) return "Gagal masuk. Coba lagi."
   const raw = String(error.message || "")
+  // Identity Toolkit kadang mengirim "KODE : penjelasan".
+  const code = raw.split(":")[0].trim()
   if (AUTH_MESSAGES[raw]) return AUTH_MESSAGES[raw]
+  if (AUTH_MESSAGES[code]) return AUTH_MESSAGES[code]
   if (/WEAK_PASSWORD/.test(raw)) return "Password minimal 6 karakter."
   if (/PASSWORD_DOES_NOT_MEET_REQUIREMENTS/.test(raw)) return "Password terlalu lemah. Gunakan minimal 6 karakter."
   if (/INVALID_IDP_RESPONSE|INVALID_LOGIN_CREDENTIALS/.test(raw)) return "Email atau password salah."

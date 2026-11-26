@@ -1,10 +1,14 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
+import { Platform } from "react-native"
+import * as Google from "expo-auth-session/providers/google"
 import {
+  GOOGLE_CLIENT_IDS,
   authErrorMessage,
   idTokenFor,
   loadSession,
   sendPasswordReset,
   signInEmail,
+  signInWithGoogleIdToken,
   signOutUser,
   signUpEmail
 } from "./firebase"
@@ -13,6 +17,45 @@ import { MISTAKE_LIMIT, useKids } from "./progress"
 
 const AccountContext = createContext(null)
 const PUSH_DELAY_MS = 1500
+
+const GOOGLE_MESSAGES = {
+  access_denied: "Login Google dibatalkan.",
+  redirect_uri_mismatch:
+    "Redirect aplikasi ini belum diizinkan di Google Cloud Console (OAuth client project Firebase).",
+  invalid_request:
+    "Konfigurasi OAuth Google belum lengkap: client ID atau redirect URI belum terdaftar.",
+  popup_closed_by_user: "Jendela login Google ditutup sebelum selesai.",
+  idpiframe_initialization_failed:
+    "Browser memblokir login Google (cookie pihak ketiga). Izinkan cookie lalu coba lagi."
+}
+
+/** Client ID Google yang tersedia untuk platform aktif. */
+function googleClientForPlatform() {
+  if (Platform.OS === "ios") return GOOGLE_CLIENT_IDS.ios
+  if (Platform.OS === "android") return GOOGLE_CLIENT_IDS.android
+  return GOOGLE_CLIENT_IDS.web
+}
+
+/** Redirect custom scheme wajib mengikuti client ID Android/iOS Google. */
+function googleRedirectUri() {
+  if (Platform.OS === "web") return undefined
+  const clientId = googleClientForPlatform()
+  const prefix = String(clientId || "").replace(/\.apps\.googleusercontent\.com$/, "")
+  return prefix ? `com.googleusercontent.apps.${prefix}:/oauth2redirect` : undefined
+}
+
+function googleErrorMessage(response) {
+  if (!response) return "Login Google gagal. Coba lagi."
+  const code =
+    (response.params && (response.params.error || response.params.error_description)) ||
+    (response.error && (response.error.code || response.error.message)) ||
+    response.error ||
+    ""
+  const key = String(code || "")
+  if (GOOGLE_MESSAGES[key]) return GOOGLE_MESSAGES[key]
+  if (/popup|window|block/i.test(key)) return "Jendela login Google diblokir. Izinkan pop-up lalu coba lagi."
+  return key || "Login Google gagal. Coba lagi."
+}
 
 const num = value => (Number.isFinite(Number(value)) ? Number(value) : 0)
 
@@ -100,6 +143,20 @@ export function AccountProvider({ children }) {
   kidsRef.current = kids
   const timer = useRef(null)
   const pushing = useRef(false)
+
+  const googleReady = Boolean(googleClientForPlatform())
+  const [googleRequest, googleResponse, promptGoogle] = Google.useIdTokenAuthRequest(
+    {
+      webClientId: GOOGLE_CLIENT_IDS.web,
+      iosClientId: GOOGLE_CLIENT_IDS.ios || undefined,
+      androidClientId: GOOGLE_CLIENT_IDS.android || undefined,
+      // Cadangan agar hook tidak gagal saat client platform belum diisi.
+      clientId: GOOGLE_CLIENT_IDS.web,
+      redirectUri: googleRedirectUri(),
+      scopes: ["openid", "email", "profile"]
+    },
+    { scheme: "pembelajar", path: "oauth" }
+  )
 
   /** Ambil progres akun lalu gabungkan ke progres lokal. */
   const hydrate = useCallback(
@@ -216,6 +273,70 @@ export function AccountProvider({ children }) {
     [hydrate]
   )
 
+  /** Selesaikan login Google: token Google ditukar jadi sesi Firebase. */
+  const completeGoogle = useCallback(
+    async idToken => {
+      setBusy(true)
+      setError("")
+      setHydrated(false)
+      try {
+        const next = await signInWithGoogleIdToken(idToken)
+        if (timer.current) clearTimeout(timer.current)
+        setSession(next)
+        await hydrate(next)
+        return true
+      } catch (failure) {
+        setError(authErrorMessage(failure))
+        return false
+      } finally {
+        setBusy(false)
+      }
+    },
+    [hydrate]
+  )
+
+  // Buka jendela Google, lalu tangani hasilnya saat respons tiba.
+  const loginWithGoogle = useCallback(async () => {
+    setError("")
+    if (!googleReady) {
+      setError(
+        "Masuk dengan Google di perangkat ini belum diatur. Isi client ID Google Android/iOS pada build, atau pakai email dan password."
+      )
+      return false
+    }
+    if (!googleRequest) {
+      setError("Menyiapkan login Google… tunggu sebentar lalu coba lagi.")
+      return false
+    }
+    setBusy(true)
+    try {
+      const result = await promptGoogle()
+      if (!result || result.type !== "success") setBusy(false)
+    } catch {
+      setBusy(false)
+      setError("Tidak bisa membuka jendela login Google. Coba lagi.")
+    }
+    return true
+  }, [googleReady, googleRequest, promptGoogle])
+
+  useEffect(() => {
+    if (!googleResponse) return
+    if (googleResponse.type === "success") {
+      const params = googleResponse.params || {}
+      const authentication = googleResponse.authentication || {}
+      const idToken = params.id_token || authentication.idToken || ""
+      if (idToken) completeGoogle(idToken)
+      else {
+        setBusy(false)
+        setError("Google tidak mengirim ID token. Coba lagi.")
+      }
+      return
+    }
+    setBusy(false)
+    if (googleResponse.type === "error") setError(googleErrorMessage(googleResponse))
+    // `dismiss`: pengguna menutup jendela, tidak perlu pesan.
+  }, [googleResponse, completeGoogle])
+
   const resetPassword = useCallback(async email => {
     setError("")
     try {
@@ -247,11 +368,27 @@ export function AccountProvider({ children }) {
       lastSync,
       login,
       register,
+      loginWithGoogle,
+      googleReady,
       resetPassword,
       logout,
       syncNow: () => (session ? push(session) : Promise.resolve())
     }),
-    [session, ready, busy, error, status, lastSync, login, register, resetPassword, logout, push]
+    [
+      session,
+      ready,
+      busy,
+      error,
+      status,
+      lastSync,
+      login,
+      register,
+      loginWithGoogle,
+      googleReady,
+      resetPassword,
+      logout,
+      push
+    ]
   )
 
   return <AccountContext.Provider value={value}>{children}</AccountContext.Provider>
