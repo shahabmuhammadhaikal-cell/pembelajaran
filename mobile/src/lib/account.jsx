@@ -9,7 +9,7 @@ import {
   signUpEmail
 } from "./firebase"
 import { fetchAccount, saveAccountKids } from "./accountApi"
-import { useKids } from "./progress"
+import { MISTAKE_LIMIT, useKids } from "./progress"
 
 const AccountContext = createContext(null)
 const PUSH_DELAY_MS = 1500
@@ -18,6 +18,35 @@ const num = value => (Number.isFinite(Number(value)) ? Number(value) : 0)
 
 function mergeMaps(local, remote) {
   return { ...(remote || {}), ...(local || {}) }
+}
+
+function mistakeEntry(value) {
+  const source = value && typeof value === "object" ? value : {}
+  return { count: Math.max(1, Math.round(num(source.count)) || 1), at: num(source.at) }
+}
+
+/** Kata sulit: jumlah salah & waktu terakhir pakai nilai terbesar per kata. */
+export function mergeMistakes(local, remote) {
+  const out = {}
+  for (const [signature, value] of Object.entries(remote || {})) {
+    if (value) out[signature] = mistakeEntry(value)
+  }
+  for (const [signature, value] of Object.entries(local || {})) {
+    if (!value) continue
+    const entry = mistakeEntry(value)
+    const previous = out[signature]
+    out[signature] = previous
+      ? { count: Math.max(previous.count, entry.count), at: Math.max(previous.at, entry.at) }
+      : entry
+  }
+  const signatures = Object.keys(out)
+  if (signatures.length > MISTAKE_LIMIT) {
+    signatures
+      .sort((a, b) => out[a].at - out[b].at)
+      .slice(0, signatures.length - MISTAKE_LIMIT)
+      .forEach(old => delete out[old])
+  }
+  return out
 }
 
 /**
@@ -40,8 +69,7 @@ export function mergeKids(local, remote) {
     stickers: mergeMaps(base.stickers, remote.stickers),
     stories: mergeMaps(base.stories, remote.stories),
     best,
-    // Kata sulit hanya tersimpan di perangkat (tidak dikirim ke server).
-    mistakes: { ...(base.mistakes || {}), ...(remote.mistakes || {}) },
+    mistakes: mergeMistakes(base.mistakes, remote.mistakes),
     lastTopic: base.lastTopic || remote.lastTopic || "",
     settings: { ...(remote.settings || {}), ...(base.settings || {}) }
   }

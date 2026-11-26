@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage"
 import { STICKERS } from "./data"
 
 const STORAGE_KEY = "pembelajar-mobile-v1"
-const MISTAKE_LIMIT = 80
+export const MISTAKE_LIMIT = 80
 
 export const DEFAULT_KIDS = {
   stars: 0,

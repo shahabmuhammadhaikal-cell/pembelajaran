@@ -12,6 +12,18 @@ test("menggabungkan progres tanpa menghilangkan data", () => {
   assert.deepEqual(merged.adult.progress.favorites, { a: 1, b: 1 })
 })
 
+test("kata sulit digabung dengan jumlah salah terbesar", () => {
+  const merged = mergeAccount(
+    { kids: { mistakes: { "animals:cat": { count: 2, at: 100 }, "food:rice": { count: 1, at: 50 } } } },
+    { kids: { mistakes: { "animals:cat": { count: 5, at: 40 }, "animals:dog": { count: 1, at: 70 } } } }
+  )
+  assert.deepEqual(merged.kids.profiles.p1.mistakes, {
+    "animals:cat": { count: 5, at: 100 },
+    "food:rice": { count: 1, at: 50 },
+    "animals:dog": { count: 1, at: 70 }
+  })
+})
+
 test("reset anak yang lebih baru menang utuh", () => {
   const merged = mergeAccount(
     {

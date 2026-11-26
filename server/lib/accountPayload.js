@@ -13,6 +13,7 @@ const MAX_REWARDS = 2000
 const MAX_SRS = 5000
 const MAX_FAVORITES = 3000
 const MAX_ERRORS = 60
+const MAX_MISTAKES = 80
 const MAX_HISTORY = 20
 const MAX_CUSTOM = 200
 const MAX_SETTINGS = 40
@@ -78,6 +79,23 @@ function settingsOf(value) {
     if (type === "string") out[key] = text(rawValue, 120)
     else if (type === "number") out[key] = number(rawValue, 1_000_000)
     else if (type === "boolean") out[key] = rawValue
+    count += 1
+  }
+  return out
+}
+
+/** Kata sulit anak: "topik:kunci" -> { count, at } (jumlah salah + waktu terakhir). */
+function mistakesOf(value) {
+  const source = plain(value)
+  const out = {}
+  if (!source) return out
+  let count = 0
+  for (const [rawKey, rawValue] of Object.entries(source)) {
+    if (count >= MAX_MISTAKES) break
+    const key = safeKey(rawKey)
+    if (!key) continue
+    const entry = plain(rawValue) || {}
+    out[key] = { count: Math.max(1, counter(entry.count) || 1), at: counter(entry.at) }
     count += 1
   }
   return out
@@ -235,6 +253,7 @@ function kidsProfile(value, fallbackId = "p1") {
     topicsDone: counterMap(source.topicsDone, MAX_REWARDS),
     stories: counterMap(source.stories, MAX_REWARDS),
     stickers: counterMap(source.stickers, MAX_REWARDS),
+    mistakes: mistakesOf(source.mistakes),
     best: bestOf(source.best),
     lastTopic: text(source.lastTopic, 80),
     daily: dailyOf(source.daily),
@@ -312,4 +331,4 @@ function sanitizeAccountPatch(body) {
   return out
 }
 
-module.exports = { sanitizeAccountPatch, profileOf, MAX_BYTES, MAX_PROFILES }
+module.exports = { sanitizeAccountPatch, profileOf, MAX_BYTES, MAX_PROFILES, MAX_MISTAKES }

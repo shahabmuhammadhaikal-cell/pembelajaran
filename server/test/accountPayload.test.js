@@ -1,6 +1,6 @@
 const test = require("node:test")
 const assert = require("node:assert/strict")
-const { sanitizeAccountPatch, MAX_PROFILES } = require("../lib/accountPayload")
+const { sanitizeAccountPatch, MAX_PROFILES, MAX_MISTAKES } = require("../lib/accountPayload")
 
 test("progres anak lama dinormalisasi menjadi dokumen profil", () => {
   const patch = sanitizeAccountPatch({
@@ -36,6 +36,27 @@ test("field asing dan nilai berbahaya dibuang", () => {
   assert.deepEqual(patch.adult.progress.favorites, { kata: 1, lain: 0 })
   assert.equal(patch.adult.progress.srs.x.evil, undefined)
   assert.equal(patch.adult.progress.unknown, undefined)
+})
+
+test("kata sulit disimpan sebagai {count, at} dan dibatasi", () => {
+  const mistakes = {}
+  for (let index = 0; index < 120; index += 1) {
+    mistakes[`animals:k${index}`] = { count: index, at: 1000 + index, note: "dibuang" }
+  }
+  const patch = sanitizeAccountPatch({ kids: { stars: 1, mistakes } })
+  const saved = patch.kids.profiles.p1.mistakes
+  assert.equal(Object.keys(saved).length, MAX_MISTAKES)
+  assert.deepEqual(saved["animals:k1"], { count: 1, at: 1001 })
+  assert.equal(saved["animals:k1"].note, undefined)
+})
+
+test("kata sulit berisi nilai berbahaya dibuang", () => {
+  const patch = sanitizeAccountPatch({
+    kids: { mistakes: { "animals:cat": { count: 3, at: 5 }, "__proto__": { count: 1 } } }
+  })
+  const saved = patch.kids.profiles.p1.mistakes
+  assert.deepEqual(saved["animals:cat"], { count: 3, at: 5 })
+  assert.equal(Object.prototype.hasOwnProperty.call(saved, "__proto__"), false)
 })
 
 test("payload terlalu besar ditolak dengan status 413", () => {

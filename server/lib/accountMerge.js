@@ -51,6 +51,19 @@ function mergeDaily(base, incoming) {
   }
 }
 
+/** Kata sulit: jumlah salah & waktu terakhir pakai nilai terbesar per kata. */
+function mergeMistakes(base, incoming) {
+  const out = { ...objectOf(base) }
+  for (const [key, value] of Object.entries(objectOf(incoming))) {
+    if (!value || typeof value !== "object") continue
+    const previous = out[key]
+    out[key] = previous
+      ? { count: maxOf(previous.count, value.count), at: maxOf(previous.at, value.at) }
+      : { count: Math.max(1, Math.round(num(value.count))), at: num(value.at) }
+  }
+  return out
+}
+
 function mergeStreak(base, incoming) {
   if (!incoming) return base || null
   if (!base) return incoming
@@ -80,6 +93,7 @@ function mergeKids(base, incoming) {
     topicsDone: unionObjects(base.topicsDone, incoming.topicsDone),
     stories: unionObjects(base.stories, incoming.stories),
     stickers: unionObjects(base.stickers, incoming.stickers),
+    mistakes: mergeMistakes(base.mistakes, incoming.mistakes),
     best,
     daily: mergeDaily(base.daily, incoming.daily),
     streak: mergeStreak(base.streak, incoming.streak),
@@ -245,6 +259,7 @@ module.exports = {
   mergeAccount,
   mergeKids,
   mergeKidsDoc,
+  mergeMistakes,
   mergeAdult,
   mergeAdultProgress,
   mergeFavorites,
