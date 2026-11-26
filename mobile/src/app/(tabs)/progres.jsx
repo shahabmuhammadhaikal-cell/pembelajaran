@@ -1,5 +1,6 @@
 import { useMemo } from "react"
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native"
+import { useRouter } from "expo-router"
 import { Button, Card, Chip, ProgressBar, Screen, SectionTitle } from "../../components/ui"
 import {
   STICKERS,
@@ -9,6 +10,7 @@ import {
   topicGroups
 } from "../../lib/data"
 import { useKids } from "../../lib/progress"
+import { useAccount } from "../../lib/account"
 import { colors, radius, text } from "../../lib/theme"
 
 const LANGUAGES = [
@@ -23,6 +25,13 @@ const LENGTHS = [
   { id: "long", label: "🦅 Panjang" }
 ]
 
+const ACCOUNT_STATUS = {
+  idle: "Belum tersinkron",
+  syncing: "Menyinkronkan…",
+  synced: "Tersimpan di Firestore",
+  offline: "Mode luring — progres menunggu koneksi"
+}
+
 const BEST_LABEL = {
   guess: "Tebak Kata",
   listen: "Dengar & Pilih",
@@ -31,7 +40,9 @@ const BEST_LABEL = {
 }
 
 export default function ProgressTab() {
+  const router = useRouter()
   const { kids, actions } = useKids()
+  const { session, status, lastSync } = useAccount()
   const level = levelProgress(kids.stars)
   const mastered = useMemo(
     () => TOPICS.reduce((sum, topic) => sum + topic.items.filter(item => kids.learned[item.key]).length, 0),
@@ -60,6 +71,28 @@ export default function ProgressTab() {
   return (
     <Screen>
       <SectionTitle emoji="📊" title="Laporan belajar" subtitle="ringkasan untuk orang tua" />
+
+      <Card style={styles.accountCard}>
+        <View style={styles.flex}>
+          <Text style={text.h3}>{session ? `🔐 ${session.email}` : "🔐 Belum masuk akun"}</Text>
+          <Text style={text.muted}>
+            {session
+              ? ACCOUNT_STATUS[status] || ACCOUNT_STATUS.idle
+              : "Masuk dengan akun Firebase yang sama seperti versi web supaya progres tersimpan di Firestore."}
+          </Text>
+          {session && lastSync ? (
+            <Text style={text.muted}>
+              Sinkron terakhir{" "}
+              {new Date(lastSync).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}
+            </Text>
+          ) : null}
+        </View>
+        <Button
+          label={session ? "Kelola" : "Masuk"}
+          size="sm"
+          onPress={() => router.push("/akun")}
+        />
+      </Card>
 
       <Card style={styles.levelCard}>
         <Text style={styles.levelAvatar}>{level.current.avatar}</Text>
@@ -187,7 +220,8 @@ export default function ProgressTab() {
       </Pressable>
 
       <Text style={[text.muted, styles.note]}>
-        Progres tersimpan otomatis di perangkat. Tidak perlu internet dan tidak ada iklan.
+        Progres tersimpan otomatis di perangkat. Menyambungkan akun membuat progres juga tersimpan di
+        Firestore. Tidak ada iklan.
       </Text>
     </Screen>
   )
@@ -195,6 +229,7 @@ export default function ProgressTab() {
 
 const styles = StyleSheet.create({
   levelCard: { flexDirection: "row", alignItems: "center", gap: 12 },
+  accountCard: { flexDirection: "row", alignItems: "center", gap: 10 },
   levelAvatar: { fontSize: 34 },
   flex: { flex: 1, gap: 6 },
   stars: { fontWeight: "800", color: colors.ink },

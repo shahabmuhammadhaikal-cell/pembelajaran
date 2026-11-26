@@ -168,6 +168,9 @@ export function KidsProvider({ children }) {
 
   const reset = useCallback(() => setKids(DEFAULT_KIDS), [])
 
+  /** Ganti seluruh progres, mis. hasil penggabungan dengan data akun. */
+  const replace = useCallback(value => setKids(withDefaults(value)), [])
+
   const actions = useMemo(
     () => ({
       addStars,
@@ -180,7 +183,8 @@ export function KidsProvider({ children }) {
       readStory,
       setSetting,
       setLastTopic,
-      reset
+      reset,
+      replace
     }),
     [
       addStars,
@@ -193,7 +197,8 @@ export function KidsProvider({ children }) {
       readStory,
       setSetting,
       setLastTopic,
-      reset
+      reset,
+      replace
     ]
   )
 
