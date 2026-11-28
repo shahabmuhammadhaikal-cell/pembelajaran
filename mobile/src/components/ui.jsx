@@ -2,7 +2,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { colors, radius, shadow, text } from "../lib/theme"
 
-export function Screen({ children, scroll = true, contentStyle, edges = ["top"] }) {
+export function Screen({ children, scroll = true, contentStyle, edges = ["top", "bottom"] }) {
   const body = scroll ? (
     <ScrollView
       contentContainerStyle={[styles.content, contentStyle]}

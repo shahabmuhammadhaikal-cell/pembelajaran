@@ -12,7 +12,7 @@ export default function StoriesTab() {
   const read = useMemo(() => Object.keys(kids.stories).length, [kids.stories])
 
   return (
-    <Screen>
+    <Screen edges={["top"]}>
       <SectionTitle
         emoji="📖"
         title="Cerita bergambar"

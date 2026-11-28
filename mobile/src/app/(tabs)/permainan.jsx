@@ -35,7 +35,7 @@ export default function GamesTab() {
 
   if (mode) {
     return (
-      <Screen scroll={false} contentStyle={styles.gameScreen}>
+      <Screen scroll={false} edges={["top"]} contentStyle={styles.gameScreen}>
         <KidsGame
           mode={mode}
           settings={kids.settings}
@@ -48,7 +48,7 @@ export default function GamesTab() {
   }
 
   return (
-    <Screen>
+    <Screen edges={["top"]}>
       <SectionTitle emoji="🎮" title="Mainkan dulu, yuk!" subtitle={`${played} permainan sudah dicoba`} />
 
       {GAMES.map(game => (

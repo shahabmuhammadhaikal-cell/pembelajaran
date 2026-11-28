@@ -69,7 +69,7 @@ export default function ProgressTab() {
   }
 
   return (
-    <Screen>
+    <Screen edges={["top"]}>
       <SectionTitle emoji="📊" title="Laporan belajar" subtitle="ringkasan untuk orang tua" />
 
       <Card style={styles.accountCard}>

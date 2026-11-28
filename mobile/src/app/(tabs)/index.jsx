@@ -57,7 +57,7 @@ export default function HomeScreen() {
     .filter(group => group.topics.length)
 
   return (
-    <Screen>
+    <Screen edges={["top"]}>
       <View style={styles.hero}>
         <Text style={styles.mascot}>🦉</Text>
         <View style={styles.heroCopy}>
